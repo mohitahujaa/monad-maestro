@@ -6,19 +6,18 @@ import type { TypedContractEvent, TypedDeferredTopicFilter, TypedEventLog, Typed
   
 
   export interface TaskEscrowInterface extends Interface {
-    getFunction(nameOrSignature: "approveWork" | "createTask" | "getProof" | "getTask" | "proofs" | "refundRemaining" | "submitProof" | "tasks" | "usdc"): FunctionFragment;
+    getFunction(nameOrSignature: "approveWork" | "createTask" | "getProof" | "getTask" | "proofs" | "refundRemaining" | "submitProof" | "tasks"): FunctionFragment;
 
     getEvent(nameOrSignatureOrTopic: "ProofSubmitted" | "TaskCompleted" | "TaskCreated" | "TaskRefunded" | "WorkApproved"): EventFragment;
 
     encodeFunctionData(functionFragment: 'approveWork', values: [BytesLike, BytesLike, AddressLike, BigNumberish]): string;
-encodeFunctionData(functionFragment: 'createTask', values: [BytesLike, BigNumberish]): string;
+encodeFunctionData(functionFragment: 'createTask', values: [BytesLike]): string;
 encodeFunctionData(functionFragment: 'getProof', values: [BytesLike, BytesLike]): string;
 encodeFunctionData(functionFragment: 'getTask', values: [BytesLike]): string;
 encodeFunctionData(functionFragment: 'proofs', values: [BytesLike, BytesLike]): string;
 encodeFunctionData(functionFragment: 'refundRemaining', values: [BytesLike]): string;
 encodeFunctionData(functionFragment: 'submitProof', values: [BytesLike, BytesLike, BytesLike]): string;
 encodeFunctionData(functionFragment: 'tasks', values: [BytesLike]): string;
-encodeFunctionData(functionFragment: 'usdc', values?: undefined): string;
 
     decodeFunctionResult(functionFragment: 'approveWork', data: BytesLike): Result;
 decodeFunctionResult(functionFragment: 'createTask', data: BytesLike): Result;
@@ -28,7 +27,6 @@ decodeFunctionResult(functionFragment: 'proofs', data: BytesLike): Result;
 decodeFunctionResult(functionFragment: 'refundRemaining', data: BytesLike): Result;
 decodeFunctionResult(functionFragment: 'submitProof', data: BytesLike): Result;
 decodeFunctionResult(functionFragment: 'tasks', data: BytesLike): Result;
-decodeFunctionResult(functionFragment: 'usdc', data: BytesLike): Result;
   }
 
   
@@ -135,9 +133,9 @@ decodeFunctionResult(functionFragment: 'usdc', data: BytesLike): Result;
 
     
     createTask: TypedContractMethod<
-      [taskId: BytesLike, amount: BigNumberish, ],
+      [taskId: BytesLike, ],
       [void],
-      'nonpayable'
+      'payable'
     >
     
 
@@ -189,14 +187,6 @@ decodeFunctionResult(functionFragment: 'usdc', data: BytesLike): Result;
     >
     
 
-    
-    usdc: TypedContractMethod<
-      [],
-      [string],
-      'view'
-    >
-    
-
 
     getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
 
@@ -206,9 +196,9 @@ decodeFunctionResult(functionFragment: 'usdc', data: BytesLike): Result;
       'nonpayable'
     >;
 getFunction(nameOrSignature: 'createTask'): TypedContractMethod<
-      [taskId: BytesLike, amount: BigNumberish, ],
+      [taskId: BytesLike, ],
       [void],
-      'nonpayable'
+      'payable'
     >;
 getFunction(nameOrSignature: 'getProof'): TypedContractMethod<
       [taskId: BytesLike, subtaskId: BytesLike, ],
@@ -238,11 +228,6 @@ getFunction(nameOrSignature: 'submitProof'): TypedContractMethod<
 getFunction(nameOrSignature: 'tasks'): TypedContractMethod<
       [arg0: BytesLike, ],
       [[string, bigint, bigint, boolean, bigint] & {depositor: string, totalAmount: bigint, releasedAmount: bigint, active: boolean, createdAt: bigint }],
-      'view'
-    >;
-getFunction(nameOrSignature: 'usdc'): TypedContractMethod<
-      [],
-      [string],
       'view'
     >;
 

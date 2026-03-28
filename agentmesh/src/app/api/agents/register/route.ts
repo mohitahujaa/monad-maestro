@@ -11,7 +11,7 @@ import { registerAgentOnChain, initReputationOnChain } from "@/lib/mcpClient";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, domain, description, skills, hourlyRate, maxBudget, walletAddress } = body;
+    const { name, domain, description, skills, hourlyRate, maxBudget, walletAddress, model } = body;
 
     if (!name || !domain || !skills?.length) {
       return NextResponse.json(
@@ -49,6 +49,8 @@ export async function POST(req: Request) {
       hourlyRate: hourlyRate ?? 2,
       maxBudget: maxBudget ?? 10,
       skills,
+      provider: "groq" as const,
+      model: model ?? "llama-3.1-8b-instant",
       onChainId: chainResult.data?.agentId ?? null,
       registeredOnChain: chainResult.onChain,
       createdAt: new Date().toISOString(),
