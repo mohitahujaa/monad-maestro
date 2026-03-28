@@ -1,4 +1,6 @@
-import { callGroqJSON } from "./groq-client";
+import { callLLMJSON, LLMProvider } from "./llm-client";
+import { getDomainTools } from "./mcpRunner";
+import { getAgent } from "./store/inMemoryStore";
 
 export interface WorkerResult {
   output: string;
@@ -6,6 +8,7 @@ export interface WorkerResult {
   proof_type: string;
   cost_used: number;
   confidence: number;
+  mcpLogs?: string[];
 }
 
 const DOMAIN_PROMPTS: Record<string, string> = {
@@ -24,19 +27,38 @@ const DOMAIN_PROMPTS: Record<string, string> = {
 };
 
 export async function runWorker(
-  domain: string,
+  agentId: string,
   subtaskTitle: string,
   subtaskDescription: string,
   budgetLimit: number
 ): Promise<WorkerResult> {
-  const domainPrompt =
-    DOMAIN_PROMPTS[domain] ?? "You are a helpful AI agent.";
+  const agent = getAgent(agentId);
+  if (!agent) {
+    throw new Error(`Agent ${agentId} not found`);
+  }
 
+  let mcpTools: any[] = [];
+  try {
+    mcpTools = await getDomainTools(agent.domain);
+  } catch (e) {
+    console.log(`[MCP] No external specialized server found for ${agent.domain}. Running baseline model.`);
+  }
+
+  const domainPrompt =
+    DOMAIN_PROMPTS[agent.domain] ?? "You are a specialized AI agent connected to external state.";
+
+  // Expose the MCP tool schema to the LLM
   const system = `${domainPrompt}
 Budget limit: $${budgetLimit} USDC.
+
+You are equipped with the following MCP Server Capabilities:
+${mcpTools.length > 0 ? JSON.stringify(mcpTools, null, 2) : "None."}
+
+If an MCP tool matches the task, simulate its usage strategy in your output details.
+
 Return this exact JSON:
 {
-  "output": "your full work output here",
+  "output": "your full work output here. If you have tools, describe what tools you would use and what arguments you pass.",
   "proof": "link or reference proving work was done",
   "proof_type": "github_commit|file_artifact|api_endpoint|text_report",
   "cost_used": 0.0,
@@ -44,5 +66,12 @@ Return this exact JSON:
 }`;
 
   const user = `Subtask: ${subtaskTitle}\nDetails: ${subtaskDescription}`;
-  return callGroqJSON<WorkerResult>(system, user);
+  
+  return callLLMJSON<WorkerResult>({
+    provider: agent.provider as LLMProvider,
+    model: agent.model,
+    system,
+    user
+  });
 }
+

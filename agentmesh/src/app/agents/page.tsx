@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, Link2, CheckCircle2, XCircle } from "lucide-react";
@@ -30,7 +31,14 @@ export default function AgentsPage() {
     writing: "bg-yellow-100 text-yellow-800",
     testing: "bg-orange-100 text-orange-800",
     data: "bg-purple-100 text-purple-800",
+    // MCP Agents
+    crypto_monad: "bg-violet-100 text-violet-800",
+    github: "bg-gray-100 text-gray-800",
+    filesystem: "bg-teal-100 text-teal-800",
+    web_search: "bg-cyan-100 text-cyan-800",
   };
+
+  const mcpDomains = new Set(["crypto_monad", "github", "filesystem", "web_search"]);
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading agents...</div>;
 
@@ -91,7 +99,8 @@ export default function AgentsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {agents.map((agent) => (
-          <Card key={agent.id} className="hover:shadow-md transition-shadow">
+          <Link key={agent.id} href={`/agents/${agent.id}`} className="block group">
+          <Card className="hover:shadow-md transition-shadow group-hover:border-primary/40 cursor-pointer">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{agent.name}</CardTitle>
@@ -100,8 +109,13 @@ export default function AgentsPage() {
                     className={`uppercase text-xs ${domainColors[agent.domain] ?? "bg-gray-100 text-gray-700"}`}
                     variant="secondary"
                   >
-                    {agent.domain}
+                    {agent.domain.replace("_", " ")}
                   </Badge>
+                  {mcpDomains.has(agent.domain) && (
+                    <span className="text-xs px-1.5 py-0.5 bg-violet-50 text-violet-700 border border-violet-200 rounded font-mono">
+                      MCP ⚡
+                    </span>
+                  )}
                   {agent.registeredOnChain && (
                     <span className="text-xs text-green-600 flex items-center gap-0.5">
                       <CheckCircle2 className="w-3 h-3" />
@@ -162,6 +176,7 @@ export default function AgentsPage() {
               </div>
             </CardContent>
           </Card>
+          </Link>
         ))}
       </div>
     </div>
