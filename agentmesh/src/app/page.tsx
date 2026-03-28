@@ -21,7 +21,7 @@ import {
 /* ── Shared animation variants ─────────────────────────────── */
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 const staggerParent = {
   hidden: {},
@@ -230,8 +230,8 @@ export default function Home() {
 
                 <div className="relative bg-[#030303] px-7 py-5 md:px-10 md:py-6 rounded-xl">
                   <h1 className="text-4xl md:text-6xl lg:text-7xl font-sans tracking-tight text-white leading-[1.05]">
-                    <span className="font-semibold block">Blockchain</span>
-                    <span className="font-light block text-white/70">AI</span>
+                    <span className="font-semibold block">AI Agent</span>
+                    <span className="font-light block text-white/70">Market</span>
                   </h1>
                 </div>
               </div>

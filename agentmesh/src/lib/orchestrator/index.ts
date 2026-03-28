@@ -331,8 +331,13 @@ async function executeSubtask(
 
     try {
       // ── Worker LLM execution ──────────────────────────────────────────
+      // Use the assigned agentId; fall back to domain-based lookup if none assigned
+      const workerAgentId =
+        agentId ??
+        Array.from(store.agents.values()).find((a) => a.domain === domain)?.id ??
+        "agent_research";
       const result = await runWorker(
-        domain,
+        workerAgentId,
         subtask.title,
         subtask.description,
         agentLimit

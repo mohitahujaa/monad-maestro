@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
 import { Shield, Star, ArrowRight } from "lucide-react";
 
@@ -9,7 +10,7 @@ interface AgentProps {
   reputation: number;
   tasks?: number;
   costPerTask?: string;
-  skills: { name: string; icon: React.ElementType }[];
+  skills: { name: string; icon: React.ComponentType<{ className?: string }> }[];
   aura: string;
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, Zap, Plus, Clock, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
@@ -16,7 +16,7 @@ const STATUS_META: Record<string, { color: string; bg: string; border: string; i
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 const stagger = {
   hidden: {},
@@ -26,7 +26,7 @@ const stagger = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TaskRow({ task }: { task: any }) {
   const meta = STATUS_META[task.status] ?? STATUS_META.pending;
-  const StatusIcon = meta.icon;
+  const StatusIcon = meta.icon as React.ComponentType<{ className?: string }>;
   const completed = task.subtasks?.filter((s: { status: string }) => s.status === "completed").length ?? 0;
   const total     = task.subtasks?.length ?? 0;
   const progress  = total > 0 ? (completed / total) * 100 : 0;
@@ -134,6 +134,8 @@ export default function TasksPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [tasks, setTasks]   = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [chainStatus, setChainStatus] = useState<any>(null);
 
   useEffect(() => {
     const fetchTasks = () =>
@@ -143,6 +145,17 @@ export default function TasksPage() {
 
     fetchTasks();
     const iv = setInterval(fetchTasks, 5000);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/chain/status")
+      .then((r) => r.json())
+      .then(setChainStatus)
+      .catch(console.error);
+    const iv = setInterval(() =>
+      fetch("/api/chain/status").then((r) => r.json()).then(setChainStatus).catch(console.error),
+    30000);
     return () => clearInterval(iv);
   }, []);
 
@@ -184,9 +197,28 @@ export default function TasksPage() {
             <div>
               <span className="section-label">Orchestration Layer</span>
               <h1 className="section-heading">Task Dashboard</h1>
-              <p className="text-[12px] text-white/40 font-mono mt-2">
-                All tasks — orchestrated off-chain, settled on Monad
-              </p>
+              <div className="flex items-center gap-3 mt-2">
+                <p className="text-[12px] text-white/40 font-mono">
+                  All tasks — orchestrated off-chain, settled on Monad
+                </p>
+                {chainStatus && (
+                  <a
+                    href="https://testnet.monadexplorer.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border transition-colors ${
+                      chainStatus.connected
+                        ? "text-green-400 border-green-800/50 bg-green-950/30 hover:bg-green-900/30"
+                        : "text-red-400 border-red-800/50 bg-red-950/30"
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${chainStatus.connected ? "bg-green-400 animate-pulse" : "bg-red-400"}`} />
+                    {chainStatus.connected
+                      ? `Monad Testnet · #${chainStatus.blockNumber?.toLocaleString()}`
+                      : "Chain offline"}
+                  </a>
+                )}
+              </div>
             </div>
             <Link
               href="/tasks/new"

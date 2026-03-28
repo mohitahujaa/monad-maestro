@@ -3,21 +3,25 @@
 /**
  * wagmi hooks for real on-chain interactions using native MON.
  * Every call goes through the user's MetaMask on Monad Testnet.
+ * Auto-switches to Monad Testnet before any transaction.
  */
 
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useBalance,
+  useChainId,
+  useSwitchChain,
 } from "wagmi";
 import { keccak256, toBytes, formatEther } from "viem";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   CONTRACTS,
   AGENT_REGISTRY_ABI,
   TASK_ESCROW_ABI,
   toMonWei,
 } from "@/lib/contracts";
+import { monadTestnet } from "@/lib/wagmi";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +41,19 @@ export function useMonBalance(address: `0x${string}` | undefined) {
   return { balance, rawValue: data?.value, refetch };
 }
 
+// ─── Network guard: returns a fn that switches to Monad if needed ─────────────
+
+function useEnsureMonadNetwork() {
+  const chainId = useChainId();
+  const { switchChainAsync } = useSwitchChain();
+
+  return useCallback(async () => {
+    if (chainId !== monadTestnet.id) {
+      await switchChainAsync({ chainId: monadTestnet.id });
+    }
+  }, [chainId, switchChainAsync]);
+}
+
 // ─── Agent Registration ───────────────────────────────────────────────────────
 
 export interface RegisterAgentArgs {
@@ -49,26 +66,36 @@ export interface RegisterAgentArgs {
 export function useRegisterAgent() {
   const { writeContract, data: hash, isPending, error, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const ensureMonad = useEnsureMonadNetwork();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const register = ({ agentId, skills, costPerTask, metadata }: RegisterAgentArgs) => {
-    writeContract({
-      address: CONTRACTS.AGENT_REGISTRY,
-      abi: AGENT_REGISTRY_ABI,
-      functionName: "registerAgent",
-      args: [toBytes32(agentId), skills, toMonWei(costPerTask), metadata],
-    });
+  const register = async ({ agentId, skills, costPerTask, metadata }: RegisterAgentArgs) => {
+    setErrorMsg(null);
+    try {
+      await ensureMonad();
+      writeContract({
+        address: CONTRACTS.AGENT_REGISTRY,
+        abi: AGENT_REGISTRY_ABI,
+        functionName: "registerAgent",
+        args: [toBytes32(agentId), skills, toMonWei(costPerTask), metadata],
+      });
+    } catch (e) {
+      const err = e as { shortMessage?: string; message?: string };
+      setErrorMsg(err.shortMessage ?? err.message?.split("\n")[0] ?? "Network switch failed");
+    }
   };
 
-  return { register, hash, isPending, isConfirming, isSuccess, error, reset };
+  return { register, hash, isPending, isConfirming, isSuccess, error, errorMsg, reset };
 }
 
 // ─── Task Escrow (single tx — send native MON) ────────────────────────────────
 
-export type EscrowStep = "idle" | "waiting_wallet" | "confirming" | "done" | "error";
+export type EscrowStep = "idle" | "switching_network" | "waiting_wallet" | "confirming" | "done" | "error";
 
 export function useTaskEscrow() {
   const [step, setStep] = useState<EscrowStep>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const ensureMonad = useEnsureMonadNetwork();
 
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
@@ -94,16 +121,24 @@ export function useTaskEscrow() {
     }
   }, [error]);
 
-  const lockFunds = (taskId: string, amountMon: number) => {
-    setStep("waiting_wallet");
+  const lockFunds = async (taskId: string, amountMon: number) => {
     setErrorMsg(null);
-    writeContract({
-      address: CONTRACTS.TASK_ESCROW,
-      abi: TASK_ESCROW_ABI,
-      functionName: "createTask",
-      args: [toBytes32(taskId)],
-      value: toMonWei(amountMon),
-    });
+    try {
+      setStep("switching_network");
+      await ensureMonad();
+      setStep("waiting_wallet");
+      writeContract({
+        address: CONTRACTS.TASK_ESCROW,
+        abi: TASK_ESCROW_ABI,
+        functionName: "createTask",
+        args: [toBytes32(taskId)],
+        value: toMonWei(amountMon),
+      });
+    } catch (e) {
+      setStep("error");
+      const err = e as { shortMessage?: string; message?: string };
+      setErrorMsg(err.shortMessage ?? err.message?.split("\n")[0] ?? "Network switch failed");
+    }
   };
 
   const reset = () => {

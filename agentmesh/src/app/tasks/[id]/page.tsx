@@ -160,6 +160,8 @@ export default function TaskDetailPage({
   const taskId = unwrappedParams.id;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [task, setTask] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [chainStatus, setChainStatus] = useState<any>(null);
 
   useEffect(() => {
     const fetchTask = () => {
@@ -172,6 +174,13 @@ export default function TaskDetailPage({
     const interval = setInterval(fetchTask, 3000);
     return () => clearInterval(interval);
   }, [taskId]);
+
+  useEffect(() => {
+    fetch("/api/chain/status")
+      .then((res) => res.json())
+      .then((data) => setChainStatus(data))
+      .catch(console.error);
+  }, []);
 
   if (!task) {
     return (
@@ -586,6 +595,46 @@ export default function TaskDetailPage({
 
         {/* Transactions Tab */}
         <TabsContent value="transactions" className="mt-4">
+          {/* Chain Status Banner */}
+          {chainStatus && (
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border mb-4 text-sm font-mono ${
+              chainStatus.connected
+                ? "bg-green-950/40 border-green-800/50 text-green-300"
+                : "bg-red-950/40 border-red-800/50 text-red-300"
+            }`}>
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${chainStatus.connected ? "bg-green-400 animate-pulse" : "bg-red-400"}`} />
+              {chainStatus.connected ? (
+                <span>
+                  Monad Testnet connected — block <strong>#{chainStatus.blockNumber?.toLocaleString()}</strong>
+                  {chainStatus.walletAddress && (
+                    <> · deployer{" "}
+                      <a
+                        href={`https://testnet.monadexplorer.com/address/${chainStatus.walletAddress}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline hover:text-green-200"
+                      >
+                        {chainStatus.walletAddress.slice(0, 8)}…{chainStatus.walletAddress.slice(-6)}
+                      </a>
+                    </>
+                  )}
+                </span>
+              ) : (
+                <span>Chain not connected — running in off-chain mode. Set MONAD_RPC_URL and DEPLOYER_PRIVATE_KEY env vars.</span>
+              )}
+              {chainStatus.connected && (
+                <a
+                  href={`https://testnet.monadexplorer.com/address/${process.env.NEXT_PUBLIC_TASK_ESCROW_ADDRESS || "0x05063844A0e23f1D1185b67b7A97A16761Ba2908"}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-auto flex items-center gap-1 text-green-400 hover:text-green-200 text-xs"
+                >
+                  View Contract <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>On-Chain Transactions</CardTitle>
@@ -595,10 +644,17 @@ export default function TaskDetailPage({
             </CardHeader>
             <CardContent>
               {task.txRecords?.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8 text-sm">
-                  No on-chain transactions yet.
-                  {task.status === "planning" && " Approve the plan to start."}
-                </p>
+                <div className="text-center py-8 space-y-2">
+                  <p className="text-muted-foreground text-sm">
+                    No on-chain transactions yet.
+                    {task.status === "planning" && " Approve the plan to start."}
+                  </p>
+                  {chainStatus && !chainStatus.connected && (
+                    <p className="text-xs text-yellow-600">
+                      Chain is in off-chain mode — transactions won&apos;t be recorded until MONAD_RPC_URL and DEPLOYER_PRIVATE_KEY are set.
+                    </p>
+                  )}
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -668,37 +724,63 @@ export default function TaskDetailPage({
           <div className="grid grid-cols-3 gap-4 mt-4">
             <Card>
               <CardContent className="pt-4">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Total Locked
-                </div>
-                <div className="text-xl font-bold">
-                  ${task.totalBudget.toFixed(2)}
-                </div>
+                <div className="text-xs text-muted-foreground mb-1">Total Locked</div>
+                <div className="text-xl font-bold">${task.totalBudget.toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">USDC</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Released
-                </div>
-                <div className="text-xl font-bold text-green-600">
-                  ${task.spentBudget.toFixed(2)}
-                </div>
+                <div className="text-xs text-muted-foreground mb-1">Released</div>
+                <div className="text-xl font-bold text-green-600">${task.spentBudget.toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">to agents</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Remaining
-                </div>
-                <div className="text-xl font-bold text-blue-600">
-                  ${(task.totalBudget - task.spentBudget).toFixed(2)}
-                </div>
+                <div className="text-xs text-muted-foreground mb-1">Remaining</div>
+                <div className="text-xl font-bold text-blue-600">${(task.totalBudget - task.spentBudget).toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">in escrow</div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Explorer quick links */}
+          <div className="flex flex-wrap gap-3 mt-4">
+            <a
+              href="https://testnet.monadexplorer.com/address/0x05063844A0e23f1D1185b67b7A97A16761Ba2908"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-xs font-mono text-white/50 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" /> TaskEscrow Contract
+            </a>
+            <a
+              href="https://testnet.monadexplorer.com/address/0xAd83441c289710001296bdE74f8f243FBAF89323"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-xs font-mono text-white/50 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" /> AgentRegistry Contract
+            </a>
+            <a
+              href="https://testnet.monadexplorer.com/address/0xDA043d0CCF4d7Fd7aC441a659A7f7894f867CB95"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-xs font-mono text-white/50 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" /> USDC Mock Token
+            </a>
+            {task.escrowTxHash && (
+              <a
+                href={`https://testnet.monadexplorer.com/tx/${task.escrowTxHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-xs font-mono text-yellow-400 hover:text-yellow-200 border border-yellow-800/40 hover:border-yellow-600/60 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Zap className="w-3 h-3" /> This Task&apos;s Escrow TX
+              </a>
+            )}
           </div>
         </TabsContent>
 

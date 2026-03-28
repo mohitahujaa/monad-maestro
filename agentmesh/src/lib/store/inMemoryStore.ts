@@ -370,9 +370,7 @@ for (const seed of SEED_AGENTS) {
   }
 }
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__agentmesh_store = store;
-}
+globalThis.__agentmesh_store = store;
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 

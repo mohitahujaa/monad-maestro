@@ -776,6 +776,7 @@ function EscrowLoader({
   const isDone = escrowStep === "done";
   const isConfirming = escrowStep === "confirming";
   const isWaiting = escrowStep === "waiting_wallet";
+  const isSwitching = escrowStep === "switching_network";
 
   return (
     <div className="p-6 rounded-2xl border border-[#0ea5e9]/20 bg-[#0ea5e9]/[0.04] space-y-5">
@@ -812,7 +813,9 @@ function EscrowLoader({
             {isDone
               ? `${budget} MON locked successfully`
               : isConfirming
-              ? `Confirming on Monad…`
+              ? `Confirming on Monad Testnet…`
+              : isSwitching
+              ? `Switching network to Monad Testnet…`
               : `Waiting for MetaMask — check your browser extension`}
           </p>
           {escrowHash && (
