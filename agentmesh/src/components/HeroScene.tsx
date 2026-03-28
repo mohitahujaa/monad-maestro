@@ -99,8 +99,10 @@ function RobotHead() {
         </RoundedBox>
         
         {/* Neck connect */}
-        <cylinderGeometry args={[0.6, 0.8, 1, 32]} />
-        <meshStandardMaterial color="#888888" metalness={0.5} roughness={0.5} />
+        <mesh position={[0, -1.5, 0]}>
+          <cylinderGeometry args={[0.6, 0.8, 1, 32]} />
+          <meshStandardMaterial color="#888888" metalness={0.5} roughness={0.5} />
+        </mesh>
 
       </Float>
     </group>

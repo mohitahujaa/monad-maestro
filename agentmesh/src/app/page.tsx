@@ -86,8 +86,9 @@ const CONTRACTS = [
 /* ═══════════════════════════════════════════════════════════ */
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
-  /* GSAP entrance timeline — scoped to hero section only */
+  /* GSAP entrance timeline */
   useGSAP(
     () => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -127,11 +128,11 @@ export default function Home() {
         "-=0.5"
       );
     },
-    { scope: heroRef }
+    { scope: pageRef }
   );
 
   return (
-    <div className="relative w-full min-h-screen bg-[#030303] text-white overflow-x-hidden">
+    <div ref={pageRef} className="relative w-full min-h-screen bg-[#030303] text-white overflow-x-hidden">
 
       {/* ── FIXED GRID LINES (persist across full page) ──────── */}
       <div className="fixed inset-0 pointer-events-none z-0">
