@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Star, CheckCircle2, Zap, Terminal, Send, Loader2, ArrowLeft } from "lucide-react";
+import { Star, CheckCircle2, Zap, Terminal, Send, Loader2, ArrowLeft, TrendingUp, Shield, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 // MCP domain config for UI hints
@@ -40,6 +40,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   github: "from-gray-600 to-gray-800",
   filesystem: "from-teal-500 to-teal-700",
   web_search: "from-cyan-500 to-cyan-700",
+  image_gen: "from-rose-500 to-pink-700",
 };
 
 export default function AgentDetailPage() {
@@ -55,6 +56,15 @@ export default function AgentDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reputation, setReputation] = useState<any>(null);
+
+  function fetchReputation() {
+    fetch(`/api/agents/${id}/reputation`)
+      .then((r) => r.json())
+      .then((data) => { if (data.reputation) setReputation(data.reputation); })
+      .catch(() => {});
+  }
 
   useEffect(() => {
     // Fetch Agent details
@@ -65,17 +75,15 @@ export default function AgentDetailPage() {
         const foundAgent = agents.find((a) => a.id === id);
         if (foundAgent) {
           setAgent(foundAgent);
-          // If the agent is MCP-backed (has one of our markers), fetch tools
           if (foundAgent.id in MCP_HINTS || foundAgent.id.includes("mcp") || foundAgent.domain.includes("crypto") || foundAgent.domain.includes("search")) {
             fetch(`/api/agents/${id}/tools`)
               .then((res) => res.json())
-              .then((data) => {
-                if (data.tools) setTools(data.tools);
-              })
+              .then((data) => { if (data.tools) setTools(data.tools); })
               .catch((err) => console.error("Failed to fetch tools:", err));
           }
         }
       });
+    fetchReputation();
   }, [id]);
 
   // Update JSON template when tool changes
@@ -120,6 +128,8 @@ export default function AgentDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
       setResult(data);
+      // Refresh reputation after every task
+      fetchReputation();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -352,6 +362,54 @@ export default function AgentDetailPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Reputation Breakdown */}
+      {reputation && (
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-sm flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" /> Reputation Score
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-32 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${reputation.reputationScore >= 80 ? "bg-green-500" : reputation.reputationScore >= 60 ? "bg-yellow-500" : "bg-red-500"}`}
+                  style={{ width: `${reputation.reputationScore}%` }}
+                />
+              </div>
+              <span className="text-lg font-bold">{reputation.reputationScore.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/100</span></span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { label: "Tasks Completed", value: reputation.tasksCompleted, icon: "✅", of: reputation.tasksAttempted > 0 ? `of ${reputation.tasksAttempted}` : null },
+              { label: "Success Rate", value: reputation.tasksAttempted > 0 ? `${Math.round(reputation.successfulTasks / reputation.tasksAttempted * 100)}%` : "N/A", icon: "📈" },
+              { label: "Retry Count", value: reputation.retryCount, icon: "🔁", danger: reputation.retryCount > 3 },
+              { label: "Proofs Verified", value: `${reputation.proofsVerified}/${reputation.proofsSubmitted}`, icon: "🔍" },
+              { label: "Avg User Rating", value: reputation.userRatingsCount > 0 ? (reputation.userRatingsSum / reputation.userRatingsCount).toFixed(1) + "★" : "N/A", icon: "⭐" },
+              { label: "Disputes", value: reputation.disputesRaised, icon: "⚠️", danger: reputation.disputesRaised > 0 },
+              { label: "Collaborations", value: `${reputation.collaborationSuccesses}/${reputation.collaborationAttempts}`, icon: "🤝" },
+              { label: "Validator Approvals", value: `${reputation.validatorApprovals}/${reputation.validatorTotal}`, icon: "🏅" },
+              { label: "External Proofs", value: reputation.externalProofs, icon: "🔗" },
+              { label: "Budget Accuracy", value: reputation.totalBudgetAllocated > 0 ? `${Math.round((1 - Math.abs(reputation.totalBudgetUsed / reputation.totalBudgetAllocated - 1)) * 100)}%` : "N/A", icon: "💰" },
+              { label: "Cost Efficiency", value: reputation.totalBudgetAllocated > 0 && reputation.totalBudgetUsed <= reputation.totalBudgetAllocated ? "Under budget" : "Over budget", icon: "📉" },
+              { label: "Last Active", value: new Date(reputation.lastUpdated).toLocaleTimeString(), icon: "🕐" },
+            ].map((stat) => (
+              <div key={stat.label} className={`rounded-lg p-3 border text-sm ${
+                stat.danger ? "bg-red-50 border-red-200" : "bg-muted/30 border-transparent"
+              }`}>
+                <p className="text-muted-foreground text-xs flex items-center gap-1">
+                  <span>{stat.icon}</span>
+                  {stat.label}
+                </p>
+                <p className={`font-semibold mt-0.5 ${stat.danger ? "text-red-600" : ""}`}>
+                  {String(stat.value)} {stat.of ? <span className="text-xs text-muted-foreground font-normal">{stat.of}</span> : null}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       )}

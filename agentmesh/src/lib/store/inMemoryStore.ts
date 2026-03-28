@@ -327,6 +327,22 @@ const SEED_AGENTS: Agent[] = [
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
   },
+  {
+    id: "agent_stability",
+    name: "VisualAI Agent",
+    domain: "image_gen",
+    description: "Generates stunning images from text prompts using Stability AI's Stable Diffusion 3. Describe anything — concept art, UI mockups, illustrations.",
+    reputationScore: 4.9,
+    walletAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    hourlyRate: 5,
+    maxBudget: 20,
+    skills: ["image generation", "concept art", "UI mockups", "stable diffusion"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 

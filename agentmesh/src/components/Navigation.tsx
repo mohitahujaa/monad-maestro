@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Zap } from "lucide-react";
+import { Zap, Sparkles } from "lucide-react";
 
 export function Navigation() {
   const [chainConnected, setChainConnected] = useState<boolean | null>(null);
@@ -37,6 +37,12 @@ export function Navigation() {
             className="transition-colors hover:text-foreground/80 text-foreground/60"
           >
             Agents
+          </Link>
+          <Link
+            href="/orchestrate"
+            className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center gap-1 font-semibold text-violet-600 hover:text-violet-700"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Orchestrate
           </Link>
           <Link
             href="/tasks"

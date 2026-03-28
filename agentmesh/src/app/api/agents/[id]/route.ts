@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAgent } from "@/lib/store/inMemoryStore";
 import { runWorker } from "@/lib/worker";
 import { runDomainMcpServer } from "@/lib/mcpRunner";
+import { updateReputation } from "@/lib/reputation";
 
 const MCP_TOOL_MAP: Record<string, { tool: string; buildArgs: (prompt: string) => object }> = {
   web_search: {
@@ -54,6 +55,7 @@ export async function POST(
       });
     } catch (err) {
       console.error(`[Exec API] Direct tool call failed for ${toolName}:`, err);
+      updateReputation(agent.id, { success: false, proofVerified: false });
       return NextResponse.json({ 
         error: `Failed to execute tool ${toolName}`, 
         details: String(err) 
@@ -74,6 +76,13 @@ export async function POST(
         mcpConfig.tool,
         mcpConfig.buildArgs(prompt)
       );
+      updateReputation(agent.id, {
+        success: true,
+        proofVerified: true,
+        externalProof: true,
+        budgetAllocated: agent.maxBudget,
+        budgetUsed: 0.1,
+      });
       return NextResponse.json({
         mode: "mcp",
         agent: { id: agent.id, name: agent.name, domain: agent.domain },
@@ -108,6 +117,15 @@ export async function POST(
       `Perform the following task using your domain expertise: ${prompt}`,
       agent.maxBudget
     );
+    updateReputation(agent.id, {
+      success: true,
+      proofVerified: !!workerResult.proof,
+      externalProof: workerResult.proof_type === "github_commit" || workerResult.proof_type === "file_artifact",
+      budgetAllocated: agent.maxBudget,
+      budgetUsed: workerResult.cost_used || 0,
+      userRating: workerResult.confidence ? Math.max(1, Math.round(workerResult.confidence * 5)) : undefined,
+      validatorApproved: workerResult.confidence > 0.7,
+    });
     return NextResponse.json({
       mode: "llm",
       agent: { id: agent.id, name: agent.name, domain: agent.domain },
@@ -116,6 +134,7 @@ export async function POST(
     });
   } catch (err) {
     console.error(`[run] LLM worker failed for ${agent.id}:`, err);
+    updateReputation(agent.id, { success: false, retries: 1 });
     return NextResponse.json(
       { error: String(err), agent: { id: agent.id, name: agent.name } },
       { status: 500 }
