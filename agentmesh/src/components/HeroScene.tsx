@@ -55,8 +55,8 @@ function RobotHead() {
       <Float speed={2} floatIntensity={1} floatingRange={[-0.1, 0.1]}>
         
         {/* Main Head Base */}
-        <RoundedBox args={[2.8, 2.8, 2.8]} radius={0.4} smoothness={4}>
-          <meshStandardMaterial color="#1a1a1a" metalness={0.6} roughness={0.3} />
+        <RoundedBox args={[2.8, 2.8, 2.8]} radius={0.5} smoothness={4}>
+          <meshStandardMaterial color="#e5e5e5" metalness={0.2} roughness={0.4} />
         </RoundedBox>
 
         {/* Outer glowing RGB visor frame */}
@@ -66,16 +66,16 @@ function RobotHead() {
 
         {/* Black Visor Screen */}
         <RoundedBox args={[2.8, 2.2, 3.05]} radius={0.2} smoothness={4} position={[0, 0, 0.1]}>
-          <meshStandardMaterial color="#050505" metalness={0.9} roughness={0.1} />
+          <meshStandardMaterial color="#000000" metalness={0.8} roughness={0.2} />
         </RoundedBox>
 
-        {/* Eyes */}
-        <mesh position={[-0.4, 0.2, 1.63]}>
-          <circleGeometry args={[0.12, 32]} />
+        {/* Eyes (Dash lines like the image) */}
+        <mesh position={[-0.4, 0.1, 1.63]}>
+          <planeGeometry args={[0.3, 0.08]} />
           <meshBasicMaterial color="#ffffff" />
         </mesh>
-        <mesh position={[0.4, 0.2, 1.63]}>
-          <circleGeometry args={[0.12, 32]} />
+        <mesh position={[0.4, 0.1, 1.63]}>
+          <planeGeometry args={[0.3, 0.08]} />
           <meshBasicMaterial color="#ffffff" />
         </mesh>
 
@@ -94,13 +94,13 @@ function RobotHead() {
         </mesh>
 
         {/* Shoulders/Base */}
-        <RoundedBox args={[3.2, 1.5, 2.0]} radius={0.3} smoothness={4} position={[0, -2.5, 0]}>
-          <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+        <RoundedBox args={[3.2, 1.5, 2.0]} radius={0.4} smoothness={4} position={[0, -2.5, 0]}>
+          <meshStandardMaterial color="#d4d4d4" metalness={0.2} roughness={0.4} />
         </RoundedBox>
         
         {/* Neck connect */}
         <cylinderGeometry args={[0.6, 0.8, 1, 32]} />
-        <meshStandardMaterial color="#111" />
+        <meshStandardMaterial color="#888888" metalness={0.5} roughness={0.5} />
 
       </Float>
     </group>

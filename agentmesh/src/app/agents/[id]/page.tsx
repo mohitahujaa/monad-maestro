@@ -129,8 +129,8 @@ export default function AgentDetailPage() {
 
   if (!agent) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Loading agent…
+      <div className="relative min-h-screen bg-[#030303] text-white flex items-center justify-center">
+        <div className="text-white/40 font-mono text-sm animate-pulse">Loading agent…</div>
       </div>
     );
   }
@@ -140,7 +140,17 @@ export default function AgentDetailPage() {
   const gradientClass = DOMAIN_COLORS[agent.domain] ?? "from-gray-500 to-gray-700";
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="relative min-h-screen bg-[#030303] text-white">
+      {/* Background grid */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 flex">
+          <div className="flex-1" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+        </div>
+      </div>
+      <div className="relative z-10 max-w-3xl mx-auto px-6 pt-24 space-y-6 pb-12">
       {/* Back */}
       <Link
         href="/agents"
@@ -355,6 +365,7 @@ export default function AgentDetailPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
