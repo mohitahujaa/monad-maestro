@@ -1,0 +1,6 @@
+{
+  "AgentMeshModule#AgentRegistry": "0xAd83441c289710001296bdE74f8f243FBAF89323",
+  "AgentMeshModule#MockUSDC": "0xDA043d0CCF4d7Fd7aC441a659A7f7894f867CB95",
+  "AgentMeshModule#ReputationContract": "0x2b929B158E9b960cb8c0b7d4feafC11b7B065ADb",
+  "AgentMeshModule#TaskEscrow": "0xcBaDDD5f491616126E9b45c75e9d0B29407aa346"
+}

@@ -4,13 +4,14 @@ import { orchestrateExecution } from "@/lib/orchestrator";
 
 export async function POST(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const task = getTask(params.id);
+  const { id } = await params;
+  const task = getTask(id);
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
-  updateTask(params.id, { status: "approved" });
-  orchestrateExecution(params.id).catch(console.error);
+  updateTask(id, { status: "approved" });
+  orchestrateExecution(id).catch(console.error);
   return NextResponse.json({ resumed: true });
 }

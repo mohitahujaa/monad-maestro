@@ -3,9 +3,10 @@ import { getTask } from "@/lib/store/inMemoryStore";
 
 export async function GET(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const task = getTask(params.id);
+  const { id } = await params;
+  const task = getTask(id);
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }

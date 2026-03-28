@@ -26,11 +26,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-background font-sans">
+      <body className="min-h-full flex flex-col bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-[#a855f7]/30">
         <Navigation />
-        <main className="flex-1 container mx-auto p-4">{children}</main>
+        <main className="flex-1 flex flex-col">{children}</main>
       </body>
     </html>
   );

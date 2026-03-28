@@ -14,8 +14,10 @@
  *   npx hardhat run scripts/deploy.ts --network monadTestnet
  */
 
-import { ethers } from "hardhat";
+import { network } from "hardhat";
 import * as fs from "fs";
+
+const { ethers } = await network.connect();
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -59,27 +61,12 @@ async function main() {
   console.log("   ReputationContract:", reputationAddress);
 
   // ── Write to .env ──────────────────────────────────────────────────────
-  const envBlock = `
-# ── Deployed Contracts (${new Date().toISOString()}) ──
-USDC_CONTRACT_ADDRESS=${usdcAddress}
-AGENT_REGISTRY_ADDRESS=${registryAddress}
-TASK_ESCROW_ADDRESS=${escrowAddress}
-REPUTATION_ADDRESS=${reputationAddress}
-DEPLOYER_PRIVATE_KEY=${(await deployer.provider!.getSigner(deployer.address) as unknown as { privateKey?: string }).privateKey ?? ""}
-`;
-
-  // Use the deployer's private key from hardhat config if available
-  // On localhost Hardhat, account 0 key is well-known
-  const hardhatAccount0Key =
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-
   const envLine = `
 # ── Deployed Contracts (${new Date().toISOString()}) ──
 USDC_CONTRACT_ADDRESS=${usdcAddress}
 AGENT_REGISTRY_ADDRESS=${registryAddress}
 TASK_ESCROW_ADDRESS=${escrowAddress}
 REPUTATION_ADDRESS=${reputationAddress}
-DEPLOYER_PRIVATE_KEY=${hardhatAccount0Key}
 `;
 
   fs.appendFileSync(".env", envLine);

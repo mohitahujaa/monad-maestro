@@ -1,12 +1,15 @@
-import "@nomicfoundation/hardhat-toolbox";
+import { defineConfig } from "hardhat/config";
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import hardhatIgnitionEthers from "@nomicfoundation/hardhat-ignition-ethers";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-/** @type import('hardhat/config').HardhatUserConfig */
-export default {
+export default defineConfig({
+  plugins: [hardhatToolboxMochaEthersPlugin, hardhatIgnitionEthers],
   solidity: {
-    version: "0.8.20",
+    version: "0.8.28",
     settings: {
+      evmVersion: "prague",
       optimizer: {
         enabled: true,
         runs: 200,
@@ -14,14 +17,14 @@ export default {
     },
   },
   networks: {
-    // Local Hardhat node
     localhost: {
+      type: "http",
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
-    // Monad Testnet
     monadTestnet: {
-      url: process.env.MONAD_RPC_URL || "https://testnet-rpc.monad.xyz",
+      type: "http",
+      url: process.env.MONAD_RPC_URL || "https://monad-testnet.drpc.org",
       chainId: 10143,
       accounts: process.env.DEPLOYER_PRIVATE_KEY
         ? [process.env.DEPLOYER_PRIVATE_KEY]
@@ -34,4 +37,4 @@ export default {
     cache: "./cache",
     artifacts: "./artifacts",
   },
-};
+});

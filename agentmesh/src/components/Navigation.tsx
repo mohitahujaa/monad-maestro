@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
 
 export function Navigation() {
   const [chainConnected, setChainConnected] = useState<boolean | null>(null);
   const [blockNumber, setBlockNumber] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const check = () => {
@@ -24,57 +24,81 @@ export function Navigation() {
     return () => clearInterval(iv);
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl tracking-tight">AgentMesh</span>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-[#0a0a0c]/90 backdrop-blur-md border-b border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+          : "bg-transparent border-b border-transparent"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded bg-gradient-to-tr from-[#0ea5e9] via-[#a855f7] to-[#f59e0b] p-[1.5px] flex-shrink-0">
+            <div className="w-full h-full bg-[#0a0a0c] rounded-[4px] flex items-center justify-center">
+              <div className="flex gap-[3px]">
+                <span className="w-1.5 h-1.5 bg-white rounded-full" />
+                <span className="w-1.5 h-1.5 bg-white rounded-full" />
+              </div>
+            </div>
+          </div>
+          <span className="font-bold text-base tracking-widest uppercase text-white group-hover:text-white/80 transition-colors">
+            AgentMesh
+          </span>
         </Link>
 
-        <nav className="flex items-center space-x-6 text-sm font-medium">
-          <Link
-            href="/agents"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
+        {/* Nav Links */}
+        <nav className="hidden md:flex items-center gap-8 text-[11px] font-mono uppercase tracking-widest text-white/50">
+          <Link href="/agents" className="hover:text-white transition-colors">Agents</Link>
+          <Link href="/tasks" className="hover:text-white transition-colors">Tasks</Link>
+          <Link href="/tasks/new" className="hover:text-white transition-colors">Deploy Task</Link>
+          <a
+            href="https://monad.xyz"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-white transition-colors"
           >
-            Agents
-          </Link>
-          <Link
-            href="/tasks"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Tasks
-          </Link>
-          <Link href="/tasks/new">
-            <Button size="sm">Create Task</Button>
-          </Link>
+            Monad ↗
+          </a>
+        </nav>
 
-          {/* Chain Status Indicator */}
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          {/* Chain status */}
           {chainConnected !== null && (
             <div
-              className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full border ${
+              className={`hidden sm:flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border ${
                 chainConnected
-                  ? "bg-green-50 border-green-200 text-green-700"
-                  : "bg-gray-50 border-gray-200 text-gray-500"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                  : "bg-white/5 border-white/10 text-white/30"
               }`}
               title={
                 chainConnected
-                  ? `Monad connected · block #${blockNumber}`
-                  : "Chain not connected — off-chain mode"
+                  ? `Monad Testnet · block #${blockNumber}`
+                  : "Chain not connected"
               }
             >
-              <Zap
-                className={`w-3 h-3 ${
-                  chainConnected ? "text-yellow-500" : "text-gray-400"
-                }`}
-              />
+              <Zap className={`w-3 h-3 ${chainConnected ? "text-emerald-400" : "text-white/30"}`} />
               <span>
-                {chainConnected
-                  ? `#${blockNumber?.toLocaleString()}`
-                  : "off-chain"}
+                {chainConnected ? `#${blockNumber?.toLocaleString()}` : "offline"}
               </span>
             </div>
           )}
-        </nav>
+
+          <Link
+            href="/tasks/new"
+            className="text-[10px] font-mono uppercase tracking-widest px-4 py-2 rounded-md border border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all"
+          >
+            Launch Engine
+          </Link>
+        </div>
       </div>
     </header>
   );
