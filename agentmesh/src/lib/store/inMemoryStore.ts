@@ -14,6 +14,8 @@ export interface Agent {
   hourlyRate: number;
   maxBudget: number;
   skills: string[];
+  provider: "groq" | "openrouter";
+  model: string;
   onChainId: string | null;   // bytes32 agentId on-chain
   registeredOnChain: boolean;
   createdAt: string;
@@ -143,6 +145,8 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 2,
     maxBudget: 5,
     skills: ["research", "analysis", "summarization"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
@@ -157,6 +161,8 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 5,
     maxBudget: 15,
     skills: ["coding", "debugging", "review"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
@@ -171,6 +177,8 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 4,
     maxBudget: 10,
     skills: ["design", "ui", "ux"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
@@ -185,6 +193,8 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 2,
     maxBudget: 6,
     skills: ["writing", "documentation", "copywriting"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
@@ -199,6 +209,8 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 3,
     maxBudget: 8,
     skills: ["testing", "qa", "validation"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
@@ -213,11 +225,111 @@ const SEED_AGENTS: Agent[] = [
     hourlyRate: 3,
     maxBudget: 10,
     skills: ["data", "analysis", "reporting"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_monad_crypto",
+    name: "Monad Crypto Agent",
+    domain: "crypto_monad",
+    description: "Interacts with Monad testnet, fetches MON tokens balances and interacts with smart contracts.",
+    reputationScore: 5.0,
+    walletAddress: "0x7777777777777777777777777777777777777777",
+    hourlyRate: 1,
+    maxBudget: 10,
+    skills: ["crypto", "monad", "blockchain", "smart contracts"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_github",
+    name: "GitHub MCP Agent",
+    domain: "github",
+    description: "Reads repositories, pushes code, creates issues and pull requests via GitHub.",
+    reputationScore: 4.8,
+    walletAddress: "0x8888888888888888888888888888888888888888",
+    hourlyRate: 5,
+    maxBudget: 20,
+    skills: ["github", "coding", "version control"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_filesystem",
+    name: "Filesystem Worker",
+    domain: "filesystem",
+    description: "Securely reads, writes, and manipulates local files directly on the host.",
+    reputationScore: 4.9,
+    walletAddress: "0x9999999999999999999999999999999999999999",
+    hourlyRate: 3,
+    maxBudget: 15,
+    skills: ["files", "scripting", "local"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_brave_search",
+    name: "Brave Search Agent",
+    domain: "web_search",
+    description: "Performs live web searches on the internet to gather up-to-date data for tasks.",
+    reputationScore: 4.7,
+    walletAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    hourlyRate: 2,
+    maxBudget: 8,
+    skills: ["search", "web", "research"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_grok",
+    name: "Grok Oracle",
+    domain: "research",
+    description: "Powered by x-AI Grok-1. Balanced and witty research agent with internet-enhanced knowledge.",
+    reputationScore: 5.0,
+    walletAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    hourlyRate: 1,
+    maxBudget: 15,
+    skills: ["witty", "advanced research", "real-time"],
+    provider: "openrouter",
+    model: "x-ai/grok-3-mini",
+    onChainId: null,
+    registeredOnChain: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_qwen",
+    name: "Qwen Architect",
+    domain: "coding",
+    description: "Powered by Alibaba's Qwen-2.5-72B. Specialized in architectural design and code documentation.",
+    reputationScore: 4.9,
+    walletAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+    hourlyRate: 2,
+    maxBudget: 25,
+    skills: ["architecture", "documentation", "system design"],
+    provider: "openrouter",
+    model: "qwen/qwen3-4b:free",
     onChainId: null,
     registeredOnChain: false,
     createdAt: new Date().toISOString(),
   },
 ];
+
+
 
 // ─── Store Structure ──────────────────────────────────────────────────────────
 
@@ -246,6 +358,17 @@ declare global {
 
 export const store: AgentMeshStore =
   globalThis.__agentmesh_store ?? (globalThis.__agentmesh_store = createStore());
+
+// Migration: Always sync provider/model from seed so stale values are corrected
+for (const seed of SEED_AGENTS) {
+  const existing = store.agents.get(seed.id);
+  if (!existing) {
+    store.agents.set(seed.id, seed);
+  } else {
+    // Always keep provider + model in sync with seed data
+    store.agents.set(seed.id, { ...existing, provider: seed.provider, model: seed.model });
+  }
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.__agentmesh_store = store;
