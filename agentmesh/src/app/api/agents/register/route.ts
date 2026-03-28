@@ -49,6 +49,8 @@ export async function POST(req: Request) {
       hourlyRate: hourlyRate ?? 2,
       maxBudget: maxBudget ?? 10,
       skills,
+      provider: "groq",
+      model: "llama-3.3-70b-versatile",
       onChainId: chainResult.data?.agentId ?? null,
       registeredOnChain: chainResult.onChain,
       createdAt: new Date().toISOString(),

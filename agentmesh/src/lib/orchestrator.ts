@@ -177,3 +177,79 @@ export async function orchestrate(prompt: string): Promise<OrchestratorResult> {
     mode,
   };
 }
+
+// ─── Task-level orchestration (used by /api/tasks routes) ─────────────────────
+// These satisfy the upstream contracts that import orchestratePlan / orchestrateExecution
+
+import { getTask, updateTask } from "./store/inMemoryStore";
+
+/**
+ * orchestratePlan — called after task creation to build a plan using the LLM.
+ * Returns the updated task object.
+ */
+export async function orchestratePlan(taskId: string) {
+  const task = getTask(taskId);
+  if (!task) throw new Error(`Task ${taskId} not found`);
+
+  updateTask(taskId, { status: "planning" });
+
+  try {
+    const planResult = await callLLMJSON<{
+      subtasks: Array<{ id: string; title: string; description: string; assigned_agent_domain: string; estimated_cost_usdc: number; estimated_time_hours: number; dependencies: string[]; proof_type: string }>;
+      total_estimated_cost: number;
+      confidence_score: number;
+      risks: string[];
+    }>({
+      provider: "groq",
+      model: "llama-3.3-70b-versatile",
+      system: `You are an AI project planner. Break down the task into subtasks, assign each to an agent domain, and estimate costs.
+Available domains: research, coding, design, writing, testing, data, crypto_monad, github, filesystem, web_search.
+Return JSON: { subtasks: [{id, title, description, assigned_agent_domain, estimated_cost_usdc, estimated_time_hours, dependencies, proof_type}], total_estimated_cost, confidence_score, risks }`,
+      user: `Task: ${task.title}\nDescription: ${task.description}\nBudget: $${task.totalBudget}`,
+      maxTokens: 1500,
+    });
+
+    updateTask(taskId, { status: "approved", planJson: planResult });
+    return getTask(taskId);
+  } catch (err) {
+    console.error(`[orchestratePlan] failed for ${taskId}:`, err);
+    updateTask(taskId, { status: "failed" });
+    return getTask(taskId);
+  }
+}
+
+/**
+ * orchestrateExecution — runs all subtasks in a planned task sequentially.
+ * Called fire-and-forget from /api/tasks/[id]/execute.
+ */
+export async function orchestrateExecution(taskId: string): Promise<void> {
+  const task = getTask(taskId);
+  if (!task || !task.planJson) {
+    console.error(`[orchestrateExecution] Task ${taskId} not found or has no plan`);
+    return;
+  }
+
+  updateTask(taskId, { status: "running" });
+
+  for (const subtask of task.planJson.subtasks) {
+    try {
+      const result = await orchestrate(`${subtask.title}: ${subtask.description}`);
+      // Mark subtask completed in the task logs
+      updateTask(taskId, {
+        logs: [
+          ...(getTask(taskId)?.logs ?? []),
+          { id: crypto.randomUUID(), taskId, level: "info", message: `✅ Subtask "${subtask.title}" completed via ${result.selectedAgent.name}`, createdAt: new Date().toISOString() },
+        ],
+      });
+    } catch (err) {
+      updateTask(taskId, {
+        logs: [
+          ...(getTask(taskId)?.logs ?? []),
+          { id: crypto.randomUUID(), taskId, level: "error", message: `❌ Subtask "${subtask.title}" failed: ${err}`, createdAt: new Date().toISOString() },
+        ],
+      });
+    }
+  }
+
+  updateTask(taskId, { status: "completed" });
+}

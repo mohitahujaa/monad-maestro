@@ -72,7 +72,7 @@ export function Navigation() {
             className="hover:text-white transition-colors"
           >
             Monad ↗
-          </a>
+          </a>  
         </nav>
 
         {/* Right side */}
