@@ -14,19 +14,16 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  *   npx hardhat ignition deploy ignition/modules/AgentMesh.ts --network monadTestnet --reset
  */
 const AgentMeshModule = buildModule("AgentMeshModule", (m) => {
-  // 1. MockUSDC
-  const mockUSDC = m.contract("MockUSDC");
-
-  // 2. AgentRegistry (no constructor args)
+  // 1. AgentRegistry (no constructor args)
   const agentRegistry = m.contract("AgentRegistry");
 
-  // 3. TaskEscrow — requires MockUSDC address
-  const taskEscrow = m.contract("TaskEscrow", [mockUSDC]);
+  // 2. TaskEscrow — native MON, no constructor args
+  const taskEscrow = m.contract("TaskEscrow");
 
-  // 4. ReputationContract (no constructor args)
+  // 3. ReputationContract (no constructor args)
   const reputationContract = m.contract("ReputationContract");
 
-  return { mockUSDC, agentRegistry, taskEscrow, reputationContract };
+  return { agentRegistry, taskEscrow, reputationContract };
 });
 
 export default AgentMeshModule;

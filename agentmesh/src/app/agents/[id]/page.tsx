@@ -139,8 +139,8 @@ export default function AgentDetailPage() {
 
   if (!agent) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Loading agent…
+      <div className="relative min-h-screen bg-transparent text-white flex items-center justify-center">
+        <div className="text-white/40 font-mono text-sm animate-pulse">Loading agent…</div>
       </div>
     );
   }
@@ -150,7 +150,17 @@ export default function AgentDetailPage() {
   const gradientClass = DOMAIN_COLORS[agent.domain] ?? "from-gray-500 to-gray-700";
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="relative min-h-screen bg-transparent text-white">
+      {/* Background grid */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 flex">
+          <div className="flex-1" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+          <div className="flex-1 border-l border-white/[0.035]" />
+        </div>
+      </div>
+      <div className="relative z-10 max-w-3xl mx-auto px-6 pt-24 space-y-6 pb-12">
       {/* Back */}
       <Link
         href="/agents"
@@ -365,54 +375,7 @@ export default function AgentDetailPage() {
           </div>
         </div>
       )}
-      {/* Reputation Breakdown */}
-      {reputation && (
-        <div className="rounded-xl border bg-card p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-sm flex items-center gap-2">
-              <Shield className="w-4 h-4 text-primary" /> Reputation Score
-            </h2>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-32 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${reputation.reputationScore >= 80 ? "bg-green-500" : reputation.reputationScore >= 60 ? "bg-yellow-500" : "bg-red-500"}`}
-                  style={{ width: `${reputation.reputationScore}%` }}
-                />
-              </div>
-              <span className="text-lg font-bold">{reputation.reputationScore.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/100</span></span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              { label: "Tasks Completed", value: reputation.tasksCompleted, icon: "✅", of: reputation.tasksAttempted > 0 ? `of ${reputation.tasksAttempted}` : null },
-              { label: "Success Rate", value: reputation.tasksAttempted > 0 ? `${Math.round(reputation.successfulTasks / reputation.tasksAttempted * 100)}%` : "N/A", icon: "📈" },
-              { label: "Retry Count", value: reputation.retryCount, icon: "🔁", danger: reputation.retryCount > 3 },
-              { label: "Proofs Verified", value: `${reputation.proofsVerified}/${reputation.proofsSubmitted}`, icon: "🔍" },
-              { label: "Avg User Rating", value: reputation.userRatingsCount > 0 ? (reputation.userRatingsSum / reputation.userRatingsCount).toFixed(1) + "★" : "N/A", icon: "⭐" },
-              { label: "Disputes", value: reputation.disputesRaised, icon: "⚠️", danger: reputation.disputesRaised > 0 },
-              { label: "Collaborations", value: `${reputation.collaborationSuccesses}/${reputation.collaborationAttempts}`, icon: "🤝" },
-              { label: "Validator Approvals", value: `${reputation.validatorApprovals}/${reputation.validatorTotal}`, icon: "🏅" },
-              { label: "External Proofs", value: reputation.externalProofs, icon: "🔗" },
-              { label: "Budget Accuracy", value: reputation.totalBudgetAllocated > 0 ? `${Math.round((1 - Math.abs(reputation.totalBudgetUsed / reputation.totalBudgetAllocated - 1)) * 100)}%` : "N/A", icon: "💰" },
-              { label: "Cost Efficiency", value: reputation.totalBudgetAllocated > 0 && reputation.totalBudgetUsed <= reputation.totalBudgetAllocated ? "Under budget" : "Over budget", icon: "📉" },
-              { label: "Last Active", value: new Date(reputation.lastUpdated).toLocaleTimeString(), icon: "🕐" },
-            ].map((stat) => (
-              <div key={stat.label} className={`rounded-lg p-3 border text-sm ${
-                stat.danger ? "bg-red-50 border-red-200" : "bg-muted/30 border-transparent"
-              }`}>
-                <p className="text-muted-foreground text-xs flex items-center gap-1">
-                  <span>{stat.icon}</span>
-                  {stat.label}
-                </p>
-                <p className={`font-semibold mt-0.5 ${stat.danger ? "text-red-600" : ""}`}>
-                  {String(stat.value)} {stat.of ? <span className="text-xs text-muted-foreground font-normal">{stat.of}</span> : null}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

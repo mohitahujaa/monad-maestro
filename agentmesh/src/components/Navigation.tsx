@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Zap, Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
+import { WalletConnect } from "@/components/WalletConnect";
 
 export function Navigation() {
   const [chainConnected, setChainConnected] = useState<boolean | null>(null);
@@ -57,11 +58,8 @@ export function Navigation() {
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-8 text-[11px] font-mono uppercase tracking-widest text-white/50">
           <Link href="/agents" className="hover:text-white transition-colors">Agents</Link>
-          <Link
-            href="/orchestrate"
-            className="hover:text-white transition-colors flex items-center gap-1 text-violet-400 hover:text-violet-300"
-          >
-            <Sparkles className="w-3 h-3" /> Orchestrate
+          <Link href="/onboard" className="hover:text-white transition-colors text-[#a855f7]/70 hover:text-[#a855f7]">
+            + Register Agent
           </Link>
           <Link href="/tasks" className="hover:text-white transition-colors">Tasks</Link>
           <Link href="/tasks/new" className="hover:text-white transition-colors">Deploy Task</Link>
@@ -98,12 +96,7 @@ export function Navigation() {
             </div>
           )}
 
-          <Link
-            href="/tasks/new"
-            className="text-[10px] font-mono uppercase tracking-widest px-4 py-2 rounded-md border border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all"
-          >
-            Launch Engine
-          </Link>
+          <WalletConnect size="sm" showNetwork={false} />
         </div>
       </div>
     </header>
