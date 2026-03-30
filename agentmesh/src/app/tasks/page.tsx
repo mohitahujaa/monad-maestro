@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink, Zap, Plus, Clock, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
+import { ExternalLink, Zap, Plus, Clock, CheckCircle2, XCircle, Loader2, ArrowRight, GitFork } from "lucide-react";
+import ForkTaskModal from "@/components/ForkTaskModal";
 
 const MONAD_EXPLORER = "https://testnet.monadexplorer.com/tx/";
 
@@ -24,28 +26,43 @@ const stagger = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function TaskRow({ task }: { task: any }) {
+function TaskRow({ task, onFork }: { task: any; onFork: (task: any) => void }) {
   const meta = STATUS_META[task.status] ?? STATUS_META.pending;
   const StatusIcon = meta.icon as React.ComponentType<{ className?: string }>;
   const completed = task.subtasks?.filter((s: { status: string }) => s.status === "completed").length ?? 0;
   const total     = task.subtasks?.length ?? 0;
   const progress  = total > 0 ? (completed / total) * 100 : 0;
   const overBudget = task.spentBudget > task.totalBudget * 0.9;
+  const canFork = ["completed", "planning", "approved"].includes(task.status);
 
   return (
     <motion.div variants={fadeUp}>
-      <Link href={`/tasks/${task.id}`} className="block group">
-        <div className="relative bg-[#0d0d10] border border-white/[0.07] rounded-2xl overflow-hidden transition-all duration-200 hover:border-white/[0.16] hover:bg-[#111115] hover:-translate-y-0.5">
-          {/* Left accent bar */}
-          <div className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: meta.color }} />
+      <div className="relative group">
+        <Link href={`/tasks/${task.id}`} className="block">
+          <div className="relative bg-[#0d0d10] border border-white/[0.07] rounded-2xl overflow-hidden transition-all duration-200 hover:border-white/[0.16] hover:bg-[#111115] hover:-translate-y-0.5">
+            {/* Left accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: meta.color }} />
 
           <div className="pl-6 pr-5 py-5 flex flex-col gap-4">
             {/* Row 1: title + status + arrow */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <h3 className="text-[14px] font-semibold text-white group-hover:text-[#a855f7] transition-colors duration-200 truncate mb-1">
-                  {task.title}
-                </h3>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h3 className="text-[14px] font-semibold text-white group-hover:text-[#a855f7] transition-colors duration-200 truncate">
+                    {task.title}
+                  </h3>
+                  {task.parentTaskId && (
+                    <span className="text-[8px] font-mono uppercase tracking-[0.15em] px-1.5 py-0.5 rounded bg-[#a855f7]/10 border border-[#a855f7]/20 text-[#a855f7] flex-shrink-0">
+                      FORK
+                    </span>
+                  )}
+                  {task.forkCount > 0 && (
+                    <span className="text-[9px] font-mono text-white/35 flex-shrink-0 flex items-center gap-1">
+                      <GitFork className="w-2.5 h-2.5" />
+                      {task.forkCount}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-white/35 font-mono">
                   Created {new Date(task.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
@@ -66,26 +83,26 @@ function TaskRow({ task }: { task: any }) {
             {/* Row 2: stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {/* Budget */}
-              <div className="bg-[#030303]/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
+              <div className="bg-transparent/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
                 <span className="block text-[8px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">Budget</span>
                 <span className="text-[13px] font-bold font-mono text-white">${task.totalBudget}</span>
               </div>
               {/* Spent */}
-              <div className="bg-[#030303]/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
+              <div className="bg-transparent/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
                 <span className="block text-[8px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">Spent</span>
                 <span className={`text-[13px] font-bold font-mono ${overBudget ? "text-red-400" : "text-white"}`}>
                   ${task.spentBudget.toFixed(2)}
                 </span>
               </div>
               {/* Subtasks */}
-              <div className="bg-[#030303]/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
+              <div className="bg-transparent/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
                 <span className="block text-[8px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">Subtasks</span>
                 <span className={`text-[13px] font-bold font-mono ${completed === total && total > 0 ? "text-[#a3e635]" : "text-white"}`}>
                   {total > 0 ? `${completed}/${total}` : "—"}
                 </span>
               </div>
               {/* Escrow TX */}
-              <div className="bg-[#030303]/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
+              <div className="bg-transparent/60 border border-white/[0.04] rounded-xl px-3 py-2.5">
                 <span className="block text-[8px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">Escrow TX</span>
                 {task.escrowTxHash ? (
                   <a
@@ -124,18 +141,34 @@ function TaskRow({ task }: { task: any }) {
               </div>
             )}
           </div>
-        </div>
-      </Link>
+          </div>
+        </Link>
+
+        {/* Fork button — rendered outside the Link to avoid nested <a> */}
+        {canFork && (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFork(task); }}
+            className="absolute top-4 right-12 z-10 flex items-center gap-1.5 px-2.5 py-1.5 text-[9px] font-mono uppercase tracking-[0.12em] text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 border border-[#a855f7]/20 hover:border-[#a855f7]/40 rounded-lg transition-all duration-150 opacity-0 group-hover:opacity-100"
+            title="Fork this task"
+          >
+            <GitFork className="w-3 h-3" />
+            Fork
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 }
 
 export default function TasksPage() {
+  const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [tasks, setTasks]   = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [chainStatus, setChainStatus] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [forkTarget, setForkTarget] = useState<any>(null);
 
   useEffect(() => {
     const fetchTasks = () =>
@@ -174,7 +207,7 @@ export default function TasksPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">
@@ -186,7 +219,7 @@ export default function TasksPage() {
       </div>
 
       {/* Page header */}
-      <div className="relative z-10 border-b border-white/[0.05] bg-[#030303]/80 backdrop-blur-xl pt-24 pb-10 px-6">
+      <div className="relative z-10 border-b border-white/[0.05] bg-transparent/80 backdrop-blur-xl pt-24 pb-10 px-6">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -284,12 +317,25 @@ export default function TasksPage() {
               className="space-y-4"
             >
               {tasks.map((task) => (
-                <TaskRow key={task.id} task={task} />
+                <TaskRow key={task.id} task={task} onFork={setForkTarget} />
               ))}
             </motion.div>
           </AnimatePresence>
         )}
       </div>
+
+      {/* Fork modal */}
+      {forkTarget && (
+        <ForkTaskModal
+          task={forkTarget}
+          isOpen={!!forkTarget}
+          onClose={() => setForkTarget(null)}
+          onForked={(newTask) => {
+            setForkTarget(null);
+            router.push(`/tasks/${newTask.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -119,14 +119,14 @@
   }
   html {
     @apply font-sans;
-    background-color: #030303;
+    background-color: #010201;
     color: #ffffff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
   }
   body {
-    background-color: #030303;
+    background-color: transparent;
     color: #ffffff;
   }
   ::selection {

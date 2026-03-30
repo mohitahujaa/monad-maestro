@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -29,7 +30,10 @@ import {
   CheckCircle2,
   Clock,
   Zap,
+  GitFork,
+  Link as LinkIcon,
 } from "lucide-react";
+import ForkTaskModal from "@/components/ForkTaskModal";
 
 const MONAD_EXPLORER = "https://testnet.monadexplorer.com/tx/";
 const HARDHAT_EXPLORER = null; // local, no explorer
@@ -158,10 +162,12 @@ export default function TaskDetailPage({
 }) {
   const unwrappedParams = use(params);
   const taskId = unwrappedParams.id;
+  const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [task, setTask] = useState<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [chainStatus, setChainStatus] = useState<any>(null);
+  const [forkOpen, setForkOpen] = useState(false);
 
   useEffect(() => {
     const fetchTask = () => {
@@ -184,7 +190,7 @@ export default function TaskDetailPage({
 
   if (!task) {
     return (
-      <div className="relative min-h-screen bg-[#030303] text-white flex items-center justify-center">
+      <div className="relative min-h-screen bg-transparent text-white flex items-center justify-center">
         <div className="text-white/40 font-mono text-sm animate-pulse">Loading task…</div>
       </div>
     );
@@ -226,7 +232,7 @@ export default function TaskDetailPage({
   const totalSubtasks = task.subtasks?.length ?? 0;
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">
@@ -244,7 +250,7 @@ export default function TaskDetailPage({
           <p className="text-muted-foreground mt-1 max-w-2xl">
             {task.description}
           </p>
-          <div className="flex items-center gap-3 mt-3">
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
             <StatusBadge status={task.status} />
             {task.escrowTxHash && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -252,13 +258,35 @@ export default function TaskDetailPage({
                 Escrow: <TxLink txHash={task.escrowTxHash} />
               </span>
             )}
+            {task.dagHash && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border bg-[#a855f7]/10 border-[#a855f7]/30 text-[#a855f7]">
+                <LinkIcon className="w-2.5 h-2.5" />
+                On-Chain Program
+              </span>
+            )}
+            {task.parentTaskId && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border bg-white/[0.04] border-white/[0.12] text-white/50">
+                <GitFork className="w-2.5 h-2.5" />
+                Forked from #{task.parentTaskId.slice(0, 8)}
+              </span>
+            )}
           </div>
         </div>
-        <div className="text-right text-sm text-muted-foreground">
-          <p>Created {new Date(task.createdAt).toLocaleString()}</p>
-          <p className="mt-1">
-            {completedSubtasks}/{totalSubtasks} subtasks
-          </p>
+        <div className="flex flex-col items-end gap-3">
+          <div className="text-right text-sm text-muted-foreground">
+            <p>Created {new Date(task.createdAt).toLocaleString()}</p>
+            <p className="mt-1">
+              {completedSubtasks}/{totalSubtasks} subtasks
+            </p>
+          </div>
+          {/* Fork this Program button */}
+          <button
+            onClick={() => setForkOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[11px] font-mono font-bold uppercase tracking-[0.15em] text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 border border-[#a855f7]/30 hover:border-[#a855f7]/50 rounded-xl transition-all duration-200 hover:shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+          >
+            <GitFork className="w-3.5 h-3.5" />
+            Fork this Program
+          </button>
         </div>
       </div>
 
@@ -834,6 +862,19 @@ export default function TaskDetailPage({
         </TabsContent>
       </Tabs>
       </div>
+
+      {/* Fork modal */}
+      {task && (
+        <ForkTaskModal
+          task={task}
+          isOpen={forkOpen}
+          onClose={() => setForkOpen(false)}
+          onForked={(newTask) => {
+            setForkOpen(false);
+            router.push(`/tasks/${newTask.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

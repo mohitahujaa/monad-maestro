@@ -105,6 +105,17 @@ export function rankAgentsForDomain(
     .sort((a, b) => b.score - a.score);
 }
 
+// Fallback map: if planner returns an unlisted domain, route it to the best agent
+const DOMAIN_FALLBACK: Record<string, string> = {
+  writing:    "research",   // → Grok Oracle
+  data:       "research",   // → Grok Oracle
+  testing:    "coding",     // → Qwen Architect
+  devops:     "filesystem", // → Filesystem Worker
+  web_search: "research",   // → Grok Oracle
+  blockchain: "crypto_monad",
+  web3:       "crypto_monad",
+};
+
 /**
  * Select the best agent for each subtask domain within budget constraints.
  * Uses a greedy approach: assign best-scored agent per domain.
@@ -116,7 +127,10 @@ export function selectAgentsForPlan(
 ): Map<string, ScoredAgent> {
   const assignments = new Map<string, ScoredAgent>();
 
-  for (const { subtaskId, domain, budget } of subtaskDomains) {
+  for (const { subtaskId, budget } of subtaskDomains) {
+    // Resolve domain alias if needed
+    const rawDomain = subtaskDomains.find(s => s.subtaskId === subtaskId)?.domain ?? "research";
+    const domain = DOMAIN_FALLBACK[rawDomain] ?? rawDomain;
     const ranked = rankAgentsForDomain(
       agents,
       domain,

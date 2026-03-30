@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { WalletConnect, WalletGate } from "@/components/WalletConnect";
 import {
@@ -36,6 +37,7 @@ type Step =
 
 export default function NewTaskPage() {
   const { address } = useAccount();
+  const router = useRouter();
 
   // Form state
   const [prompt, setPrompt] = useState("");
@@ -45,10 +47,13 @@ export default function NewTaskPage() {
   const [step, setStep] = useState<Step>("input");
   const [plan, setPlan] = useState<OrchestrationPlan | null>(null);
 
+  // Real backend task ID (created during orchestration)
+  const [realTaskId, setRealTaskId] = useState<string | null>(null);
+
   // Per-subtask overrides (user can swap agents)
   const [overrides, setOverrides] = useState<Record<string, string>>({});
 
-  // Execution state
+  // Execution state (fallback if no backend task)
   const [execStates, setExecStates] = useState<ExecutionState[]>([]);
   const stopExecRef = useRef<(() => void) | null>(null);
   const [taskId] = useState(() => `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
@@ -57,30 +62,82 @@ export default function NewTaskPage() {
   const escrow = useTaskEscrow();
   const { balance } = useMonBalance(address as `0x${string}` | undefined);
 
-  // When escrow confirms → move to execution
+  // When escrow confirms → save hash, approve, execute, redirect to real task detail
   useEffect(() => {
     if (escrow.isDone && escrow.step === "done" && step === "escrow" && plan) {
-      setStep("executing");
-      const stop = simulateExecution(plan.subtasks, plan.dagLevels, (states) => {
-        setExecStates(states);
-        if (states.every((s) => s.status === "completed" || s.status === "failed")) {
-          setTimeout(() => setStep("done"), 800);
-        }
-      });
-      stopExecRef.current = stop;
+      if (realTaskId) {
+        (async () => {
+          try {
+            // Save escrow tx hash on backend task
+            if (escrow.hash) {
+              await fetch(`/api/tasks/${realTaskId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ escrowTxHash: escrow.hash }),
+              });
+            }
+            // Approve plan
+            await fetch(`/api/tasks/${realTaskId}/approve`, { method: "POST" });
+            // Fire execution (non-blocking)
+            fetch(`/api/tasks/${realTaskId}/execute`, { method: "POST" }).catch(console.error);
+            // Redirect to live task detail page
+            router.push(`/tasks/${realTaskId}`);
+          } catch (err) {
+            console.error("[escrow→execute]", err);
+            // Fallback to simulation
+            setStep("executing");
+            const stop = simulateExecution(plan.subtasks, plan.dagLevels, (states) => {
+              setExecStates(states);
+              if (states.every((s) => s.status === "completed" || s.status === "failed")) {
+                setTimeout(() => setStep("done"), 800);
+              }
+            });
+            stopExecRef.current = stop;
+          }
+        })();
+      } else {
+        // No backend task — fall back to frontend simulation
+        setStep("executing");
+        const stop = simulateExecution(plan.subtasks, plan.dagLevels, (states) => {
+          setExecStates(states);
+          if (states.every((s) => s.status === "completed" || s.status === "failed")) {
+            setTimeout(() => setStep("done"), 800);
+          }
+        });
+        stopExecRef.current = stop;
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [escrow.isDone]);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!prompt.trim() || budget <= 0) return;
     setStep("orchestrating");
-    setTimeout(() => {
-      const p = orchestratePlan(prompt, budget);
-      setPlan(p);
-      setOverrides({});
-      setStep("team");
-    }, 2000);
+
+    // Create real backend task (LLM planning runs server-side)
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: prompt.length > 80 ? prompt.slice(0, 80) + "…" : prompt,
+          description: prompt,
+          totalBudget: budget,
+        }),
+      });
+      if (res.ok) {
+        const backendTask = await res.json();
+        setRealTaskId(backendTask.id);
+      }
+    } catch (e) {
+      console.warn("[handleGenerate] Backend task creation failed, will fall back to simulation", e);
+    }
+
+    // Mock plan for wizard UI display
+    const p = orchestratePlan(prompt, budget);
+    setPlan(p);
+    setOverrides({});
+    setStep("team");
   }, [prompt, budget]);
 
   const handleOverride = (subtaskId: string, agentId: string) => {
@@ -101,7 +158,8 @@ export default function NewTaskPage() {
 
   const handleEscrow = () => {
     setStep("escrow");
-    escrow.lockFunds(taskId, effectiveCost);
+    // Use realTaskId from backend if available, otherwise use client-generated id
+    escrow.lockFunds(realTaskId ?? taskId, effectiveCost);
   };
 
   const handleDownloadPDF = () => {

@@ -129,7 +129,7 @@ export default function AgentDetailPage() {
 
   if (!agent) {
     return (
-      <div className="relative min-h-screen bg-[#030303] text-white flex items-center justify-center">
+      <div className="relative min-h-screen bg-transparent text-white flex items-center justify-center">
         <div className="text-white/40 font-mono text-sm animate-pulse">Loading agent…</div>
       </div>
     );
@@ -140,7 +140,7 @@ export default function AgentDetailPage() {
   const gradientClass = DOMAIN_COLORS[agent.domain] ?? "from-gray-500 to-gray-700";
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">

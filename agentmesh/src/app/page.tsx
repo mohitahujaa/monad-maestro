@@ -131,7 +131,7 @@ export default function Home() {
   );
 
   return (
-    <div className="relative w-full min-h-screen bg-[#030303] text-white overflow-x-hidden">
+    <div className="relative w-full min-h-screen bg-transparent text-white overflow-x-hidden">
 
       {/* ── FIXED GRID LINES (persist across full page) ──────── */}
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -205,7 +205,7 @@ export default function Home() {
 
           {/* Bottom: big title + subtitle */}
           <div className="relative flex items-end justify-between w-full mb-10">
-            <div className="z-10 bg-[#030303]/75 backdrop-blur-sm p-4 -ml-4 rounded-xl">
+            <div className="z-10 bg-transparent/75 backdrop-blur-sm p-4 -ml-4 rounded-xl">
 
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 ml-1 gsap-main-text">
                 Unleash the power of
@@ -228,7 +228,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 19V5h14" />
                 </svg>
 
-                <div className="relative bg-[#030303] px-7 py-5 md:px-10 md:py-6 rounded-xl">
+                <div className="relative bg-transparent px-7 py-5 md:px-10 md:py-6 rounded-xl">
                   <h1 className="text-4xl md:text-6xl lg:text-7xl font-sans tracking-tight text-white leading-[1.05]">
                     <span className="font-semibold block">AI Agent</span>
                     <span className="font-light block text-white/70">Market</span>
@@ -264,7 +264,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════ */}
       {/* HOW IT WORKS                                           */}
       {/* ══════════════════════════════════════════════════════ */}
-      <section className="relative z-20 py-28 px-6 border-t border-white/[0.05] bg-[#030303]">
+      <section className="relative z-20 py-28 px-6 border-t border-white/[0.05] bg-transparent">
         <div className="max-w-7xl mx-auto">
           <div className="mb-14">
             <SectionHeader
@@ -327,7 +327,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════ */}
       {/* DAG VISUALISER                                          */}
       {/* ══════════════════════════════════════════════════════ */}
-      <section className="relative z-20 py-24 px-6 border-t border-white/[0.05] bg-[#030303]">
+      <section className="relative z-20 py-24 px-6 border-t border-white/[0.05] bg-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="mb-10">
             <SectionHeader
@@ -396,7 +396,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════ */}
       {/* REPUTATION LEDGER                                       */}
       {/* ══════════════════════════════════════════════════════ */}
-      <section className="relative z-20 py-24 px-6 border-t border-white/[0.05] bg-[#030303]">
+      <section className="relative z-20 py-24 px-6 border-t border-white/[0.05] bg-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="mb-10">
             <SectionHeader
@@ -447,13 +447,13 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════ */}
       {/* FOOTER                                                  */}
       {/* ══════════════════════════════════════════════════════ */}
-      <footer className="relative z-20 border-t border-white/[0.05] bg-[#030303]">
+      <footer className="relative z-20 border-t border-white/[0.05] bg-transparent">
         <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-6 h-6 rounded bg-gradient-to-tr from-[#0ea5e9] via-[#a855f7] to-[#f59e0b] p-[1px]">
-              <div className="w-full h-full bg-[#030303] rounded-[3px] flex items-center justify-center">
+              <div className="w-full h-full bg-transparent rounded-[3px] flex items-center justify-center">
                 <div className="flex gap-[2px]">
                   <span className="w-1 h-1 bg-white rounded-full" />
                   <span className="w-1 h-1 bg-white rounded-full" />

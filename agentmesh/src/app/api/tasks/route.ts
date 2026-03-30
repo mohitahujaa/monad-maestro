@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getAllTasks, upsertTask, Task } from "@/lib/store/inMemoryStore";
+import { getAllTasks, upsertTask, updateTask, Task } from "@/lib/store/inMemoryStore";
 import { orchestratePlan } from "@/lib/orchestrator";
+
+export const maxDuration = 120;
 
 export async function GET() {
   const tasks = getAllTasks();
@@ -50,6 +52,10 @@ export async function POST(req: Request) {
       },
       selectedAgents: [],
       dagLevels: [],
+      parentTaskId: null,
+      forkCount: 0,
+      dagHash: null,
+      version: 1,
     };
 
     upsertTask(task);
@@ -58,7 +64,12 @@ export async function POST(req: Request) {
     // We await it so the client gets back a fully-planned task
     const planned = await orchestratePlan(taskId);
 
-    return NextResponse.json(planned ?? task);
+    // Compute a simulated on-chain DAG anchor hash
+    const dagHash = `dag_0x${Buffer.from(JSON.stringify(planned?.planJson ?? {})).toString('hex').slice(0, 40)}`;
+    updateTask(taskId, { dagHash });
+
+    const finalTask = planned ? { ...planned, dagHash } : { ...task, dagHash };
+    return NextResponse.json(finalTask);
   } catch (err) {
     console.error("[POST /api/tasks]", err);
     return NextResponse.json(

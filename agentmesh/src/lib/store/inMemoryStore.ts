@@ -103,6 +103,11 @@ export interface Task {
   };
   selectedAgents: SelectedAgent[];
   dagLevels: string[][];  // subtask IDs grouped by execution level
+  // Tasks-as-On-Chain-Programs fields
+  parentTaskId: string | null;
+  forkCount: number;
+  dagHash: string | null;
+  version: number;
 }
 
 export interface SelectedAgent {
@@ -132,199 +137,103 @@ export interface PlanSubtask {
   proof_type: string;
 }
 
-// ─── Seed Data ────────────────────────────────────────────────────────────────
+// ─── Seed Data — only agents with valid API keys ──────────────────────────────
 
 const SEED_AGENTS: Agent[] = [
-  {
-    id: "agent_research",
-    name: "ResearchAgent",
-    domain: "research",
-    description: "Searches, summarizes, and gathers information from multiple sources.",
-    reputationScore: 4.8,
-    walletAddress: "0x1111111111111111111111111111111111111111",
-    hourlyRate: 2,
-    maxBudget: 5,
-    skills: ["research", "analysis", "summarization"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_coding",
-    name: "CodeAgent",
-    domain: "coding",
-    description: "Writes, reviews, and debugs code across multiple languages.",
-    reputationScore: 4.9,
-    walletAddress: "0x2222222222222222222222222222222222222222",
-    hourlyRate: 5,
-    maxBudget: 15,
-    skills: ["coding", "debugging", "review"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_design",
-    name: "DesignAgent",
-    domain: "design",
-    description: "Creates UI layouts, design specs, and visual assets.",
-    reputationScore: 4.6,
-    walletAddress: "0x3333333333333333333333333333333333333333",
-    hourlyRate: 4,
-    maxBudget: 10,
-    skills: ["design", "ui", "ux"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_writing",
-    name: "WritingAgent",
-    domain: "writing",
-    description: "Produces technical docs, blog posts, and copywriting.",
-    reputationScore: 4.7,
-    walletAddress: "0x4444444444444444444444444444444444444444",
-    hourlyRate: 2,
-    maxBudget: 6,
-    skills: ["writing", "documentation", "copywriting"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_testing",
-    name: "TestingAgent",
-    domain: "testing",
-    description: "Writes test suites, runs QA checks, and validates outputs.",
-    reputationScore: 4.5,
-    walletAddress: "0x5555555555555555555555555555555555555555",
-    hourlyRate: 3,
-    maxBudget: 8,
-    skills: ["testing", "qa", "validation"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_data",
-    name: "DataAgent",
-    domain: "data",
-    description: "Processes datasets, runs analysis, and generates reports.",
-    reputationScore: 4.7,
-    walletAddress: "0x6666666666666666666666666666666666666666",
-    hourlyRate: 3,
-    maxBudget: 10,
-    skills: ["data", "analysis", "reporting"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
   {
     id: "agent_monad_crypto",
     name: "Monad Crypto Agent",
     domain: "crypto_monad",
-    description: "Interacts with Monad testnet, fetches MON tokens balances and interacts with smart contracts.",
+    description: "Interacts with Monad testnet via MCP — fetches MON balances, reads contracts, and executes on-chain transactions.",
     reputationScore: 5.0,
     walletAddress: "0x7777777777777777777777777777777777777777",
     hourlyRate: 1,
     maxBudget: 10,
-    skills: ["crypto", "monad", "blockchain", "smart contracts"],
+    skills: ["crypto", "monad", "blockchain", "smart contracts", "web3", "defi"],
     provider: "groq",
     model: "llama-3.3-70b-versatile",
     onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_github",
-    name: "GitHub MCP Agent",
-    domain: "github",
-    description: "Reads repositories, pushes code, creates issues and pull requests via GitHub.",
-    reputationScore: 4.8,
-    walletAddress: "0x8888888888888888888888888888888888888888",
-    hourlyRate: 5,
-    maxBudget: 20,
-    skills: ["github", "coding", "version control"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_filesystem",
-    name: "Filesystem Worker",
-    domain: "filesystem",
-    description: "Securely reads, writes, and manipulates local files directly on the host.",
-    reputationScore: 4.9,
-    walletAddress: "0x9999999999999999999999999999999999999999",
-    hourlyRate: 3,
-    maxBudget: 15,
-    skills: ["files", "scripting", "local"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "agent_brave_search",
-    name: "Brave Search Agent",
-    domain: "web_search",
-    description: "Performs live web searches on the internet to gather up-to-date data for tasks.",
-    reputationScore: 4.7,
-    walletAddress: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    hourlyRate: 2,
-    maxBudget: 8,
-    skills: ["search", "web", "research"],
-    provider: "groq",
-    model: "llama-3.3-70b-versatile",
-    onChainId: null,
-    registeredOnChain: false,
+    registeredOnChain: true,
     createdAt: new Date().toISOString(),
   },
   {
     id: "agent_grok",
     name: "Grok Oracle",
     domain: "research",
-    description: "Powered by x-AI Grok-1. Balanced and witty research agent with internet-enhanced knowledge.",
+    description: "Powered by xAI Grok — internet-enhanced research, analysis, writing, and data summaries with real-time knowledge.",
     reputationScore: 5.0,
     walletAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
     hourlyRate: 1,
     maxBudget: 15,
-    skills: ["witty", "advanced research", "real-time"],
+    skills: ["research", "writing", "analysis", "data", "summarization", "copywriting", "documentation"],
     provider: "openrouter",
     model: "x-ai/grok-3-mini",
     onChainId: null,
-    registeredOnChain: false,
+    registeredOnChain: true,
     createdAt: new Date().toISOString(),
   },
   {
     id: "agent_qwen",
     name: "Qwen Architect",
     domain: "coding",
-    description: "Powered by Alibaba's Qwen-2.5-72B. Specialized in architectural design and code documentation.",
+    description: "Powered by Alibaba Qwen — expert in system architecture, full-stack code, testing, and technical documentation.",
     reputationScore: 4.9,
     walletAddress: "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
     hourlyRate: 2,
     maxBudget: 25,
-    skills: ["architecture", "documentation", "system design"],
+    skills: ["coding", "architecture", "testing", "debugging", "system design", "api", "backend", "frontend"],
     provider: "openrouter",
     model: "qwen/qwen3-4b:free",
     onChainId: null,
-    registeredOnChain: false,
+    registeredOnChain: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_stability",
+    name: "Stability AI",
+    domain: "design",
+    description: "Powered by Stability AI via OpenRouter — generates UI specs, design systems, visual layouts, and creative assets.",
+    reputationScore: 4.8,
+    walletAddress: "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    hourlyRate: 3,
+    maxBudget: 20,
+    skills: ["design", "ui", "ux", "visual", "branding", "layout", "figma", "creative"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_github",
+    name: "GitHub MCP Agent",
+    domain: "github",
+    description: "Connected to GitHub via MCP — reads repos, creates branches, pushes code, opens PRs, and manages issues.",
+    reputationScore: 4.8,
+    walletAddress: "0x8888888888888888888888888888888888888888",
+    hourlyRate: 5,
+    maxBudget: 20,
+    skills: ["github", "coding", "version control", "ci/cd", "pull requests", "issues"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "agent_filesystem",
+    name: "Filesystem Worker",
+    domain: "filesystem",
+    description: "Connected to local filesystem via MCP — reads, writes, and transforms files, scripts, and project structures.",
+    reputationScore: 4.9,
+    walletAddress: "0x9999999999999999999999999999999999999999",
+    hourlyRate: 3,
+    maxBudget: 15,
+    skills: ["files", "scripting", "local", "automation", "build", "deploy"],
+    provider: "groq",
+    model: "llama-3.3-70b-versatile",
+    onChainId: null,
+    registeredOnChain: true,
     createdAt: new Date().toISOString(),
   },
 ];
@@ -359,14 +268,25 @@ declare global {
 export const store: AgentMeshStore =
   globalThis.__agentmesh_store ?? (globalThis.__agentmesh_store = createStore());
 
-// Migration: Always sync provider/model from seed so stale values are corrected
+// Migration: Remove any stale agents not in the current seed list, then upsert seed agents
+const validSeedIds = new Set(SEED_AGENTS.map((a) => a.id));
+for (const id of Array.from(store.agents.keys())) {
+  // Keep user-registered agents (not in seed) but remove old seed agents that were replaced
+  const isOldSeed = [
+    "agent_research", "agent_coding", "agent_design", "agent_writing",
+    "agent_testing", "agent_data", "agent_brave_search",
+  ].includes(id);
+  if (isOldSeed && !validSeedIds.has(id)) {
+    store.agents.delete(id);
+  }
+}
 for (const seed of SEED_AGENTS) {
   const existing = store.agents.get(seed.id);
   if (!existing) {
     store.agents.set(seed.id, seed);
   } else {
-    // Always keep provider + model in sync with seed data
-    store.agents.set(seed.id, { ...existing, provider: seed.provider, model: seed.model });
+    // Always keep provider + model + skills in sync with seed data
+    store.agents.set(seed.id, { ...existing, provider: seed.provider, model: seed.model, skills: seed.skills });
   }
 }
 
@@ -400,9 +320,28 @@ export function getAgentByDomain(domain: string): Agent | undefined {
   );
 }
 
+const MAX_TASKS = 50;
+
 export function upsertTask(task: Task): Task {
-  store.tasks.set(task.id, task);
-  return task;
+  // Ensure on-chain program fields are always present (caller values take priority)
+  const normalised: Task = {
+    ...task,
+    parentTaskId: task.parentTaskId ?? null,
+    forkCount: task.forkCount ?? 0,
+    dagHash: task.dagHash ?? null,
+    version: task.version ?? 1,
+  };
+  store.tasks.set(normalised.id, normalised);
+  // Evict oldest tasks if over the cap
+  if (store.tasks.size > MAX_TASKS) {
+    const sorted = Array.from(store.tasks.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    for (let i = 0; i < store.tasks.size - MAX_TASKS; i++) {
+      store.tasks.delete(sorted[i].id);
+    }
+  }
+  return normalised;
 }
 
 export function updateTask(id: string, updates: Partial<Task>): Task | null {
@@ -444,6 +383,8 @@ export function addAlert(
   store.tasks.set(taskId, task);
 }
 
+const MAX_LOGS_PER_TASK = 200;
+
 export function addLog(
   taskId: string,
   level: ExecutionLog["level"],
@@ -456,10 +397,14 @@ export function addLog(
     id: crypto.randomUUID(),
     taskId,
     level,
-    message,
+    message: message.slice(0, 500), // cap message length
     txHash,
     createdAt: new Date().toISOString(),
   });
+  // Keep only the latest logs to prevent unbounded growth
+  if (task.logs.length > MAX_LOGS_PER_TASK) {
+    task.logs = task.logs.slice(-MAX_LOGS_PER_TASK);
+  }
   store.tasks.set(taskId, task);
 }
 

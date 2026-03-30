@@ -5,32 +5,32 @@
  */
 
 export const MODEL_INFO = {
-  "gpt-4": {
-    id: "gpt-4",
-    label: "GPT-4",
-    provider: "OpenAI",
-    color: "#10a37f",
-    quality: 0.97,
-    badge: "Best Quality",
-    description: "Most capable, thorough reasoning",
+  groq: {
+    id: "groq",
+    label: "Llama 3.3 70B (Groq)",
+    provider: "Groq",
+    color: "#f97316",
+    quality: 0.92,
+    badge: "Ultra Fast",
+    description: "Groq-accelerated Llama — fastest inference",
   },
-  claude: {
-    id: "claude",
-    label: "Claude",
-    provider: "Anthropic",
+  openrouter_grok: {
+    id: "openrouter_grok",
+    label: "Grok 3 Mini (xAI)",
+    provider: "xAI via OpenRouter",
     color: "#a855f7",
-    quality: 0.91,
-    badge: "Balanced",
-    description: "Reliable quality, cost-efficient",
+    quality: 0.95,
+    badge: "Best Research",
+    description: "Internet-enhanced knowledge, real-time reasoning",
   },
-  llama: {
-    id: "llama",
-    label: "Llama 3 (Open Source)",
-    provider: "Meta / Community",
-    color: "#f59e0b",
-    quality: 0.78,
-    badge: "Budget",
-    description: "Open weights, fastest, cheapest",
+  openrouter_qwen: {
+    id: "openrouter_qwen",
+    label: "Qwen 3 4B (Alibaba)",
+    provider: "Alibaba via OpenRouter",
+    color: "#0ea5e9",
+    quality: 0.91,
+    badge: "Architecture",
+    description: "Expert in system design and code architecture",
   },
 } as const;
 
@@ -83,33 +83,75 @@ export interface OrchestrationPlan {
   summary: string;
 }
 
-// ─── Agent Pool (costs in MON) ────────────────────────────────────────────────
+// ─── Agent Pool — only the 6 live agents with valid API keys ─────────────────
 
 const AGENT_POOL: MockAgentTemplate[] = [
-  // Copywriting
-  { id: "copy-1", name: "CopyBot Pro",    model: "gpt-4",  domain: "writing",  skills: ["copywriting", "marketing", "SEO"],                costPerTask: 0.05,  reputation: 92, successRate: 0.94, taskCount: 287 },
-  { id: "copy-2", name: "FastWriter",     model: "claude", domain: "writing",  skills: ["copywriting", "content"],                         costPerTask: 0.02,  reputation: 81, successRate: 0.86, taskCount: 145 },
-  { id: "copy-3", name: "LlamaText",      model: "llama",  domain: "writing",  skills: ["copywriting"],                                    costPerTask: 0.008, reputation: 68, successRate: 0.74, taskCount: 63 },
-  // UI Design
-  { id: "ui-1",   name: "DesignAI Elite", model: "gpt-4",  domain: "design",   skills: ["UI design", "Figma", "prototyping", "branding"],  costPerTask: 0.06,  reputation: 95, successRate: 0.96, taskCount: 312 },
-  { id: "ui-2",   name: "UIForge",        model: "claude", domain: "design",   skills: ["UI design", "CSS", "Tailwind"],                   costPerTask: 0.025, reputation: 83, successRate: 0.88, taskCount: 178 },
-  { id: "ui-3",   name: "SketchBot",      model: "llama",  domain: "design",   skills: ["UI design"],                                      costPerTask: 0.009, reputation: 70, successRate: 0.76, taskCount: 89 },
-  // Frontend Dev
-  { id: "fe-1",   name: "CodeCraft GPT",  model: "gpt-4",  domain: "coding",   skills: ["React", "Next.js", "TypeScript", "frontend"],     costPerTask: 0.07,  reputation: 94, successRate: 0.95, taskCount: 441 },
-  { id: "fe-2",   name: "DevBot Claude",  model: "claude", domain: "coding",   skills: ["React", "JavaScript", "CSS", "frontend"],         costPerTask: 0.03,  reputation: 86, successRate: 0.89, taskCount: 203 },
-  { id: "fe-3",   name: "LlamaCode",      model: "llama",  domain: "coding",   skills: ["JavaScript", "HTML", "CSS"],                      costPerTask: 0.01,  reputation: 72, successRate: 0.77, taskCount: 97 },
-  // Research
-  { id: "res-1",  name: "ResearchGPT",    model: "gpt-4",  domain: "research", skills: ["research", "analysis", "summarization", "data"], costPerTask: 0.04,  reputation: 90, successRate: 0.93, taskCount: 256 },
-  { id: "res-2",  name: "AnalytixBot",    model: "claude", domain: "research", skills: ["research", "analysis", "reporting"],              costPerTask: 0.018, reputation: 80, successRate: 0.85, taskCount: 134 },
-  { id: "res-3",  name: "QuickSearch",    model: "llama",  domain: "research", skills: ["research", "summarization"],                      costPerTask: 0.006, reputation: 65, successRate: 0.72, taskCount: 55 },
-  // Testing / QA
-  { id: "qa-1",   name: "TestBot Pro",    model: "gpt-4",  domain: "testing",  skills: ["testing", "QA", "automation", "Jest"],            costPerTask: 0.05,  reputation: 88, successRate: 0.92, taskCount: 198 },
-  { id: "qa-2",   name: "BugHunter",      model: "claude", domain: "testing",  skills: ["testing", "QA", "debugging"],                     costPerTask: 0.022, reputation: 78, successRate: 0.84, taskCount: 121 },
-  { id: "qa-3",   name: "LlamaTest",      model: "llama",  domain: "testing",  skills: ["testing"],                                        costPerTask: 0.007, reputation: 63, successRate: 0.70, taskCount: 48 },
-  // Data / Analytics
-  { id: "data-1", name: "DataWiz GPT",    model: "gpt-4",  domain: "data",     skills: ["data analysis", "Python", "SQL", "visualization"],costPerTask: 0.055, reputation: 91, successRate: 0.94, taskCount: 167 },
-  { id: "data-2", name: "PandasBot",      model: "claude", domain: "data",     skills: ["data analysis", "Python", "SQL"],                 costPerTask: 0.024, reputation: 82, successRate: 0.87, taskCount: 99 },
-  { id: "data-3", name: "LlamaData",      model: "llama",  domain: "data",     skills: ["data analysis", "SQL"],                           costPerTask: 0.008, reputation: 67, successRate: 0.73, taskCount: 41 },
+  {
+    id: "agent_monad_crypto",
+    name: "Monad Crypto Agent",
+    model: "groq",
+    domain: "crypto_monad",
+    skills: ["crypto", "monad", "blockchain", "smart contracts", "web3", "defi"],
+    costPerTask: 0.01,
+    reputation: 100,
+    successRate: 0.98,
+    taskCount: 412,
+  },
+  {
+    id: "agent_grok",
+    name: "Grok Oracle",
+    model: "openrouter_grok",
+    domain: "research",
+    skills: ["research", "writing", "analysis", "data", "summarization", "copywriting", "documentation"],
+    costPerTask: 0.01,
+    reputation: 100,
+    successRate: 0.97,
+    taskCount: 389,
+  },
+  {
+    id: "agent_qwen",
+    name: "Qwen Architect",
+    model: "openrouter_qwen",
+    domain: "coding",
+    skills: ["coding", "architecture", "testing", "debugging", "system design", "api", "backend", "frontend"],
+    costPerTask: 0.02,
+    reputation: 98,
+    successRate: 0.96,
+    taskCount: 521,
+  },
+  {
+    id: "agent_stability",
+    name: "Stability AI",
+    model: "groq",
+    domain: "design",
+    skills: ["design", "ui", "ux", "visual", "branding", "layout", "figma", "creative"],
+    costPerTask: 0.02,
+    reputation: 96,
+    successRate: 0.94,
+    taskCount: 278,
+  },
+  {
+    id: "agent_github",
+    name: "GitHub MCP Agent",
+    model: "groq",
+    domain: "github",
+    skills: ["github", "coding", "version control", "ci/cd", "pull requests", "issues"],
+    costPerTask: 0.03,
+    reputation: 96,
+    successRate: 0.95,
+    taskCount: 334,
+  },
+  {
+    id: "agent_filesystem",
+    name: "Filesystem Worker",
+    model: "groq",
+    domain: "filesystem",
+    skills: ["files", "scripting", "local", "automation", "build", "deploy"],
+    costPerTask: 0.02,
+    reputation: 98,
+    successRate: 0.96,
+    taskCount: 445,
+  },
 ];
 
 // ─── Prompt Parser ────────────────────────────────────────────────────────────

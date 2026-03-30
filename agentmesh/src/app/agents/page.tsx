@@ -128,7 +128,7 @@ function AgentCard({ agent }: { agent: any }) {
                 { label: "Rate",       value: `$${agent.hourlyRate}/task` },
                 { label: "Max Budget", value: `$${agent.maxBudget}`       },
               ].map((s) => (
-                <div key={s.label} className="bg-[#030303]/70 border border-white/[0.05] rounded-xl px-3 py-2.5">
+                <div key={s.label} className="bg-transparent/70 border border-white/[0.05] rounded-xl px-3 py-2.5">
                   <span className="block text-[9px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">
                     {s.label}
                   </span>
@@ -183,7 +183,7 @@ export default function AgentsPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">
@@ -195,7 +195,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Page header */}
-      <div className="relative z-10 border-b border-white/[0.05] bg-[#030303]/80 backdrop-blur-xl pt-24 pb-10 px-6">
+      <div className="relative z-10 border-b border-white/[0.05] bg-transparent/80 backdrop-blur-xl pt-24 pb-10 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -256,7 +256,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="relative z-10 border-b border-white/[0.05] bg-[#030303]/60 backdrop-blur-xl px-6 py-4">
+      <div className="relative z-10 border-b border-white/[0.05] bg-transparent/60 backdrop-blur-xl px-6 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
