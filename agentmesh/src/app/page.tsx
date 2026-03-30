@@ -31,8 +31,54 @@ const stagger = {
 };
 
 export default function Home() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  /* GSAP entrance timeline */
+  useGSAP(
+    () => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+      tl.fromTo(".gsap-grid-v",
+        { scaleY: 0, transformOrigin: "top" },
+        { scaleY: 1, duration: 1.6, stagger: 0.1, ease: "expo.inOut" }
+      )
+      .fromTo(".gsap-grid-h",
+        { scaleX: 0, transformOrigin: "left" },
+        { scaleX: 1, duration: 1.4, stagger: 0.12, ease: "expo.inOut" },
+        "-=1.3"
+      )
+      .fromTo(".gsap-model",
+        { opacity: 0, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: 1.3 },
+        "-=0.9"
+      )
+      .fromTo(".gsap-quote",
+        { x: -28, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1 },
+        "-=0.9"
+      )
+      .fromTo(".gsap-main-text",
+        { y: 36, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, stagger: 0.18 },
+        "-=0.85"
+      )
+      .fromTo(".gsap-list-item",
+        { x: 28, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, stagger: 0.09 },
+        "-=0.85"
+      )
+      .fromTo(".gsap-fade",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.9, stagger: 0.18 },
+        "-=0.5"
+      );
+    },
+    { scope: pageRef }
+  );
+
   return (
-    <div className="relative w-full min-h-screen bg-[#0a0a0c] font-sans text-white overflow-x-hidden selection:bg-[#a855f7]/30">
+    <div ref={pageRef} className="relative w-full min-h-screen bg-[#030303] text-white overflow-x-hidden">
 
       {/* ── Subtle grid overlay ─────────────────────────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
